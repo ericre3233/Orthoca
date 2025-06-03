@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Prescrição - {{ prescription.patient.name }} - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Prescrição Ortomolecular</h1>
+                <div>
+                    <a href="{{ url_for('prescription_pdf', id=prescription.id) }}" class="btn btn-success me-2" target="_blank">
+                        <i class="fas fa-file-pdf me-1"></i>Gerar PDF
+                    </a>
+                    <a href="{{ url_for('patient_view', id=prescription.patient.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Voltar ao Paciente
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Header Information -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h6 class="m-0"><i class="fas fa-user me-2"></i>{{ prescription.patient.name }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>CPF:</strong> {{ prescription.patient.cpf }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Data de Nascimento:</strong> {{ prescription.patient.birth_date.strftime('%d/%m/%Y') }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Telefone:</strong> {{ prescription.patient.phone }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="m-0"><i class="fas fa-user-md me-2"></i>Dr. {{ prescription.doctor.name }}</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>CRM:</strong> {{ prescription.doctor.crm or 'N/A' }}</p>
+                    <p class="mb-1"><strong>Especialidade:</strong> {{ prescription.doctor.specialty or 'Medicina Ortomolecular' }}</p>
+                    <p class="mb-0"><strong>Data:</strong> {{ prescription.date.strftime('%d/%m/%Y') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Prescription Content -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-body prescription-content">
+                    {% if prescription.custom_formulas %}
+                    <div class="mb-4">
+                        <h6 class="text-success border-bottom pb-2">
+                            <i class="fas fa-flask me-2"></i>Fórmulas Manipuladas
+                        </h6>
+                        <div class="prescription-text">{{ prescription.custom_formulas | replace('\n', '<br>') | safe }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if prescription.supplements_prescribed %}
+                    <div class="mb-4">
+                        <h6 class="text-success border-bottom pb-2">
+                            <i class="fas fa-pills me-2"></i>Suplementos Prescritos
+                        </h6>
+                        {% set supplement_ids = prescription.supplements_prescribed | from_json %}
+                        {% if supplement_ids %}
+                            {% for supplement_id in supplement_ids %}
+                                {% set supplement = supplements.query.get(supplement_id) %}
+                                {% if supplement %}
+                                <div class="prescription-item mb-3">
+                                    <strong>{{ supplement.name }}</strong>
+                                    {% if supplement.dosage_info %}
+                                    <div class="text-muted">{{ supplement.dosage_info }}</div>
+                                    {% endif %}
+                                    {% if supplement.observations %}
+                                    <div class="small text-info">{{ supplement.observations }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if prescription.lab_tests_requested %}
+                    <div class="mb-4">
+                        <h6 class="text-success border-bottom pb-2">
+                            <i class="fas fa-vial me-2"></i>Exames Laboratoriais Solicitados
+                        </h6>
+                        {% set lab_test_ids = prescription.lab_tests_requested | from_json %}
+                        {% if lab_test_ids %}
+                            {% for lab_test_id in lab_test_ids %}
+                                {% set lab_test = lab_tests.query.get(lab_test_id) %}
+                                {% if lab_test %}
+                                <div class="prescription-item mb-3">
+                                    <strong>{{ lab_test.name }}</strong>
+                                    {% if lab_test.description %}
+                                    <div class="text-muted">{{ lab_test.description }}</div>
+                                    {% endif %}
+                                    {% if lab_test.reference_values %}
+                                    <div class="small text-info">Valores de referência: {{ lab_test.reference_values }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if prescription.additional_instructions %}
+                    <div class="mb-4">
+                        <h6 class="text-success border-bottom pb-2">
+                            <i class="fas fa-info-circle me-2"></i>Instruções Adicionais
+                        </h6>
+                        <div class="prescription-text">{{ prescription.additional_instructions | replace('\n', '<br>') | safe }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if prescription.observations %}
+                    <div class="mb-4">
+                        <h6 class="text-success border-bottom pb-2">
+                            <i class="fas fa-notes-medical me-2"></i>Observações Médicas
+                        </h6>
+                        <div class="prescription-text">{{ prescription.observations | replace('\n', '<br>') | safe }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if not any([prescription.custom_formulas, prescription.supplements_prescribed, prescription.lab_tests_requested, prescription.additional_instructions, prescription.observations]) %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-prescription fa-3x text-gray-300 mb-3"></i>
+                        <p class="text-muted">Esta prescrição não possui conteúdo detalhado.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Medical Record -->
+    {% if prescription.medical_record %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Prontuário Relacionado</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            {% if prescription.medical_record.diagnosis %}
+                            <h6 class="text-primary">Diagnóstico</h6>
+                            <p>{{ prescription.medical_record.diagnosis }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-end">
+                                <a href="{{ url_for('medical_record_view', id=prescription.medical_record.id) }}" class="btn btn-primary">
+                                    <i class="fas fa-file-medical me-1"></i>Ver Prontuário Completo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add JSON filter for Jinja2
+window.addEventListener('DOMContentLoaded', function() {
+    // Handle JSON parsing in JavaScript if needed
+    console.log('Prescription view loaded');
+});
+</script>
+{% endblock %}

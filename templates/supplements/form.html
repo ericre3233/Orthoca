@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
+                <a href="{{ url_for('supplements_list') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Informações do Suplemento</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                {{ form.name.label(class="form-label") }}
+                                {{ form.name(class="form-control", placeholder="Ex: Vitamina D3, Magnésio Glicina, Ômega 3") }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.name.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.category.label(class="form-label") }}
+                                {{ form.category(class="form-select") }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.category.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="3", placeholder="Descrição do suplemento, benefícios, indicações...") }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.description.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.dosage_info.label(class="form-label") }}
+                            {{ form.dosage_info(class="form-control", rows="3", placeholder="Ex: 1 cápsula ao dia, preferencialmente pela manhã, junto com alimentos.") }}
+                            {% if form.dosage_info.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.dosage_info.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.observations.label(class="form-label") }}
+                            {{ form.observations(class="form-control", rows="2", placeholder="Contraindicações, interações, observações especiais...") }}
+                            {% if form.observations.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.observations.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_active(class="form-check-input") }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.is_active.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('supplements_list') }}" class="btn btn-secondary me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Salvar Suplemento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Dicas</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li>Use nomes específicos para facilitar a busca</li>
+                        <li>Inclua dosagem e forma de administração na posologia</li>
+                        <li>Mencione contraindicações importantes</li>
+                        <li>Categorize corretamente para organização</li>
+                        <li>Desative suplementos descontinuados</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Categorias</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <p><strong>Vitamina:</strong> A, B, C, D, E, K, etc.</p>
+                        <p><strong>Mineral:</strong> Magnésio, Zinco, Ferro, etc.</p>
+                        <p><strong>Aminoácido:</strong> L-Arginina, Taurina, etc.</p>
+                        <p><strong>Fitoterápico:</strong> Extratos vegetais</p>
+                        <p><strong>Probiótico:</strong> Lactobacillus, etc.</p>
+                        <p class="mb-0"><strong>Enzima:</strong> Digestivas, etc.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

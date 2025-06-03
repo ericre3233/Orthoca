@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
+                <a href="{{ url_for('patient_view', id=patient.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar ao Paciente
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Patient Info Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h6 class="m-0"><i class="fas fa-user me-2"></i>{{ patient.name }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>CPF:</strong> {{ patient.cpf }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Data de Nascimento:</strong> {{ patient.birth_date.strftime('%d/%m/%Y') }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Telefone:</strong> {{ patient.phone }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Email:</strong> {{ patient.email or 'Não informado' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Prescrição Ortomolecular</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Custom Formulas -->
+                        <div class="mb-4">
+                            {{ form.custom_formulas.label(class="form-label") }}
+                            {{ form.custom_formulas(class="form-control", rows="6", placeholder="Digite as fórmulas manipuladas:\n\nEx:\nVitamina D3 50.000 UI\nMagnésio Glicina 400mg\nÔmega 3 1000mg\n\nUsar conforme orientação médica.") }}
+                            {% if form.custom_formulas.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.custom_formulas.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Supplements Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">Suplementos do Banco de Dados</label>
+                            <div class="row">
+                                {% for supplement in supplements %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="supplements" value="{{ supplement.id }}" id="supplement_{{ supplement.id }}">
+                                        <label class="form-check-label" for="supplement_{{ supplement.id }}">
+                                            <strong>{{ supplement.name }}</strong>
+                                            <small class="text-muted d-block">{{ supplement.dosage_info or 'Conforme orientação médica' }}</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if not supplements %}
+                            <p class="text-muted">Nenhum suplemento cadastrado. <a href="{{ url_for('supplement_new') }}">Cadastrar suplementos</a></p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Lab Tests Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">Exames Laboratoriais Solicitados</label>
+                            <div class="row">
+                                {% for lab_test in lab_tests %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="lab_tests" value="{{ lab_test.id }}" id="lab_test_{{ lab_test.id }}">
+                                        <label class="form-check-label" for="lab_test_{{ lab_test.id }}">
+                                            <strong>{{ lab_test.name }}</strong>
+                                            <small class="text-muted d-block">{{ lab_test.description or '' }}</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if not lab_tests %}
+                            <p class="text-muted">Nenhum exame cadastrado. <a href="{{ url_for('lab_test_new') }}">Cadastrar exames</a></p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Additional Instructions -->
+                        <div class="mb-4">
+                            {{ form.additional_instructions.label(class="form-label") }}
+                            {{ form.additional_instructions(class="form-control", rows="3", placeholder="Instruções adicionais para o paciente...") }}
+                            {% if form.additional_instructions.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.additional_instructions.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Observations -->
+                        <div class="mb-4">
+                            {{ form.observations.label(class="form-label") }}
+                            {{ form.observations(class="form-control", rows="3", placeholder="Observações médicas...") }}
+                            {% if form.observations.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.observations.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('patient_view', id=patient.id) }}" class="btn btn-secondary me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i>Salvar Prescrição
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Informações do Paciente</h6>
+                </div>
+                <div class="card-body">
+                    {% if patient.allergies %}
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Alergias
+                        </h6>
+                        <p class="mb-0 small">{{ patient.allergies }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if patient.current_medications %}
+                    <h6 class="text-primary">Medicamentos Atuais</h6>
+                    <p class="small">{{ patient.current_medications }}</p>
+                    {% endif %}
+                    
+                    {% if patient.medical_history %}
+                    <h6 class="text-primary">Histórico Médico</h6>
+                    <p class="small">{{ patient.medical_history }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Dicas de Prescrição</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li>Use fórmulas manipuladas para dosagens específicas</li>
+                        <li>Selecione suplementos padronizados quando apropriado</li>
+                        <li>Inclua instruções claras de uso</li>
+                        <li>Considere interações medicamentosas</li>
+                        <li>Solicite exames de acompanhamento quando necessário</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Prontuários - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Prontuários Médicos</h1>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    {% if records %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Paciente</th>
+                                    <th>Médico</th>
+                                    <th>Queixa Principal</th>
+                                    <th>Diagnóstico</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in records %}
+                                <tr>
+                                    <td>{{ record.date.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('patient_view', id=record.patient.id) }}" class="text-decoration-none">
+                                            {{ record.patient.name }}
+                                        </a>
+                                    </td>
+                                    <td>Dr. {{ record.doctor.name }}</td>
+                                    <td>{{ (record.chief_complaint[:50] + '...') if record.chief_complaint and record.chief_complaint|length > 50 else (record.chief_complaint or '-') }}</td>
+                                    <td>{{ (record.diagnosis[:50] + '...') if record.diagnosis and record.diagnosis|length > 50 else (record.diagnosis or '-') }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('medical_record_view', id=record.id) }}" class="btn btn-info btn-sm" title="Ver Prontuário">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('prescription_new', patient_id=record.patient.id) }}" class="btn btn-success btn-sm" title="Nova Prescrição">
+                                                <i class="fas fa-prescription"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-medical fa-3x text-gray-300 mb-3"></i>
+                        <h5 class="text-muted">Nenhum prontuário médico encontrado</h5>
+                        <p class="text-muted mb-3">Os prontuários aparecerão aqui conforme forem criados durante as consultas.</p>
+                        <a href="{{ url_for('patients_list') }}" class="btn btn-primary">
+                            <i class="fas fa-users me-1"></i>Ver Pacientes
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Financeiro - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Dashboard Financeiro</h1>
+                <a href="{{ url_for('payment_new') }}" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i>Registrar Pagamento
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Receita Hoje
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ "%.2f"|format(stats.total_today) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Receita do Mês
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ "%.2f"|format(stats.total_month) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Receita do Ano
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">R$ {{ "%.2f"|format(stats.total_year) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Consultas Pendentes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pending_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Payments -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Pagamentos Recentes</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow">
+                            <div class="dropdown-header">Relatórios:</div>
+                            <a class="dropdown-item" href="#" onclick="generateReport('today')">Relatório Diário</a>
+                            <a class="dropdown-item" href="#" onclick="generateReport('month')">Relatório Mensal</a>
+                            <a class="dropdown-item" href="#" onclick="generateReport('year')">Relatório Anual</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_payments %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Paciente</th>
+                                    <th>Valor</th>
+                                    <th>Forma de Pagamento</th>
+                                    <th>Recibo</th>
+                                    <th>Descrição</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in recent_payments %}
+                                <tr>
+                                    <td>{{ payment.payment_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('patient_view', id=payment.patient.id) }}" class="text-decoration-none">
+                                            {{ payment.patient.name }}
+                                        </a>
+                                    </td>
+                                    <td><strong class="text-success">R$ {{ "%.2f"|format(payment.amount) }}</strong></td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if payment.payment_method == 'cash' %}bg-success
+                                            {% elif payment.payment_method == 'card' %}bg-primary
+                                            {% elif payment.payment_method == 'pix' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {% if payment.payment_method == 'cash' %}Dinheiro
+                                            {% elif payment.payment_method == 'card' %}Cartão
+                                            {% elif payment.payment_method == 'pix' %}PIX
+                                            {% elif payment.payment_method == 'transfer' %}Transferência
+                                            {% else %}{{ payment.payment_method.title() }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td><small class="text-muted">{{ payment.receipt_number }}</small></td>
+                                    <td>{{ (payment.description[:30] + '...') if payment.description and payment.description|length > 30 else (payment.description or '-') }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('receipt_pdf', id=payment.id) }}" class="btn btn-success btn-sm" title="Gerar Recibo" target="_blank">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
+                                            <a href="{{ url_for('patient_view', id=payment.patient.id) }}" class="btn btn-info btn-sm" title="Ver Paciente">
+                                                <i class="fas fa-user"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-dollar-sign fa-3x text-gray-300 mb-3"></i>
+                        <h5 class="text-muted">Nenhum pagamento registrado</h5>
+                        <p class="text-muted mb-3">Os pagamentos aparecerão aqui conforme forem registrados.</p>
+                        <a href="{{ url_for('payment_new') }}" class="btn btn-success">
+                            <i class="fas fa-plus me-1"></i>Registrar Primeiro Pagamento
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function generateReport(period) {
+    // Simple report generation - in a real app, this would generate actual reports
+    let title, message;
+    
+    switch(period) {
+        case 'today':
+            title = 'Relatório Diário';
+            message = 'Receita de hoje: R$ {{ "%.2f"|format(stats.total_today) }}';
+            break;
+        case 'month':
+            title = 'Relatório Mensal';
+            message = 'Receita do mês: R$ {{ "%.2f"|format(stats.total_month) }}';
+            break;
+        case 'year':
+            title = 'Relatório Anual';
+            message = 'Receita do ano: R$ {{ "%.2f"|format(stats.total_year) }}';
+            break;
+    }
+    
+    alert(title + '\n\n' + message + '\n\nEm uma implementação completa, isso geraria um relatório detalhado.');
+}
+</script>
+{% endblock %}

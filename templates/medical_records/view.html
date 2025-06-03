@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Prontuário - {{ record.patient.name }} - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Prontuário Médico</h1>
+                <div>
+                    <a href="{{ url_for('prescription_new', patient_id=record.patient.id) }}" class="btn btn-success me-2">
+                        <i class="fas fa-prescription me-1"></i>Nova Prescrição
+                    </a>
+                    <a href="{{ url_for('patient_view', id=record.patient.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Voltar ao Paciente
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Patient and Doctor Info -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="m-0"><i class="fas fa-user me-2"></i>{{ record.patient.name }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>CPF:</strong> {{ record.patient.cpf }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Data de Nascimento:</strong> {{ record.patient.birth_date.strftime('%d/%m/%Y') }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Telefone:</strong> {{ record.patient.phone }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="m-0"><i class="fas fa-user-md me-2"></i>Dr. {{ record.doctor.name }}</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>CRM:</strong> {{ record.doctor.crm or 'N/A' }}</p>
+                    <p class="mb-1"><strong>Especialidade:</strong> {{ record.doctor.specialty or 'Medicina Ortomolecular' }}</p>
+                    <p class="mb-0"><strong>Data:</strong> {{ record.date.strftime('%d/%m/%Y') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Medical Record Content -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    {% if record.chief_complaint %}
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2">
+                            <i class="fas fa-exclamation-circle me-2"></i>Queixa Principal
+                        </h6>
+                        <p class="medical-content">{{ record.chief_complaint }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if record.anamnesis %}
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2">
+                            <i class="fas fa-history me-2"></i>Anamnese
+                        </h6>
+                        <p class="medical-content">{{ record.anamnesis }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if record.symptoms %}
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2">
+                            <i class="fas fa-thermometer-half me-2"></i>Sintomas
+                        </h6>
+                        <p class="medical-content">{{ record.symptoms }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if record.physical_exam %}
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2">
+                            <i class="fas fa-stethoscope me-2"></i>Exame Físico
+                        </h6>
+                        <p class="medical-content">{{ record.physical_exam }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if record.diagnosis %}
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2">
+                            <i class="fas fa-diagnoses me-2"></i>Diagnóstico
+                        </h6>
+                        <p class="medical-content">{{ record.diagnosis }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if record.treatment_plan %}
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2">
+                            <i class="fas fa-clipboard-list me-2"></i>Conduta Médica
+                        </h6>
+                        <p class="medical-content">{{ record.treatment_plan }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if record.observations %}
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2">
+                            <i class="fas fa-notes-medical me-2"></i>Observações
+                        </h6>
+                        <p class="medical-content">{{ record.observations }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if not any([record.chief_complaint, record.anamnesis, record.symptoms, record.physical_exam, record.diagnosis, record.treatment_plan, record.observations]) %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-medical fa-3x text-gray-300 mb-3"></i>
+                        <p class="text-muted">Este prontuário não possui informações detalhadas.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Prescriptions -->
+    {% if record.prescriptions %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Prescrições Relacionadas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Fórmulas Manipuladas</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prescription in record.prescriptions %}
+                                <tr>
+                                    <td>{{ prescription.date.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ (prescription.custom_formulas[:50] + '...') if prescription.custom_formulas and prescription.custom_formulas|length > 50 else (prescription.custom_formulas or 'Suplementos apenas') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('prescription_view', id=prescription.id) }}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                        <a href="{{ url_for('prescription_pdf', id=prescription.id) }}" class="btn btn-success btn-sm" target="_blank">
+                                            <i class="fas fa-file-pdf"></i> PDF
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

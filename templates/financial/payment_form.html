@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Pagamento - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Registrar Pagamento</h1>
+                <a href="{{ url_for('financial_dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Informações do Pagamento</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.patient_id.label(class="form-label") }}
+                                {{ form.patient_id(class="form-select") }}
+                                {% if form.patient_id.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.patient_id.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.appointment_id.label(class="form-label") }}
+                                {{ form.appointment_id(class="form-select") }}
+                                {% if form.appointment_id.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.appointment_id.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">Opcional - Vincular a uma consulta específica</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.amount.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    {{ form.amount(class="form-control", step="0.01", min="0") }}
+                                </div>
+                                {% if form.amount.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.amount.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.payment_method.label(class="form-label") }}
+                                {{ form.payment_method(class="form-select") }}
+                                {% if form.payment_method.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.payment_method.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", placeholder="Ex: Consulta ortomolecular, Exames laboratoriais, etc.") }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.description.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('financial_dashboard') }}" class="btn btn-secondary me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i>Registrar Pagamento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Dicas</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li>Sempre registre pagamentos imediatamente após o recebimento</li>
+                        <li>Vincule o pagamento a uma consulta quando possível</li>
+                        <li>Use descrições claras para facilitar relatórios</li>
+                        <li>Um recibo será gerado automaticamente</li>
+                        <li>O número do recibo será único para cada pagamento</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Formas de Pagamento</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <p><i class="fas fa-money-bill text-success me-2"></i><strong>Dinheiro:</strong> Pagamento em espécie</p>
+                        <p><i class="fas fa-credit-card text-primary me-2"></i><strong>Cartão:</strong> Débito ou crédito</p>
+                        <p><i class="fas fa-mobile-alt text-info me-2"></i><strong>PIX:</strong> Transferência instantânea</p>
+                        <p class="mb-0"><i class="fas fa-university text-secondary me-2"></i><strong>Transferência:</strong> TED/DOC</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Pre-select patient if provided in URL
+const urlParams = new URLSearchParams(window.location.search);
+const patientId = urlParams.get('patient_id');
+if (patientId) {
+    document.getElementById('patient_id').value = patientId;
+    
+    // Load appointments for selected patient
+    loadPatientAppointments(patientId);
+}
+
+// Load appointments when patient changes
+document.getElementById('patient_id').addEventListener('change', function() {
+    const selectedPatientId = this.value;
+    if (selectedPatientId) {
+        loadPatientAppointments(selectedPatientId);
+    } else {
+        document.getElementById('appointment_id').innerHTML = '<option value="0">Nenhuma</option>';
+    }
+});
+
+function loadPatientAppointments(patientId) {
+    // In a real application, this would make an AJAX call to load appointments
+    // For now, we'll just reset the appointment select
+    const appointmentSelect = document.getElementById('appointment_id');
+    appointmentSelect.innerHTML = '<option value="0">Nenhuma</option>';
+    
+    // Add a placeholder option
+    const option = document.createElement('option');
+    option.value = '0';
+    option.text = 'Carregando consultas...';
+    appointmentSelect.add(option);
+    
+    // Simulate loading (in real app, replace with actual AJAX call)
+    setTimeout(() => {
+        appointmentSelect.innerHTML = '<option value="0">Nenhuma</option>';
+    }, 1000);
+}
+</script>
+{% endblock %}

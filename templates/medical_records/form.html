@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
+                <a href="{{ url_for('patient_view', id=patient.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar ao Paciente
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Patient Info Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="m-0"><i class="fas fa-user me-2"></i>{{ patient.name }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>CPF:</strong> {{ patient.cpf }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Data de Nascimento:</strong> {{ patient.birth_date.strftime('%d/%m/%Y') }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Telefone:</strong> {{ patient.phone }}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>Email:</strong> {{ patient.email or 'Não informado' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Prontuário Médico</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-4">
+                            {{ form.chief_complaint.label(class="form-label") }}
+                            {{ form.chief_complaint(class="form-control", rows="3", placeholder="Descreva a queixa principal do paciente...") }}
+                            {% if form.chief_complaint.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.chief_complaint.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.anamnesis.label(class="form-label") }}
+                            {{ form.anamnesis(class="form-control", rows="4", placeholder="Anamnese detalhada...") }}
+                            {% if form.anamnesis.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.anamnesis.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.symptoms.label(class="form-label") }}
+                            {{ form.symptoms(class="form-control", rows="3", placeholder="Sintomas apresentados...") }}
+                            {% if form.symptoms.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.symptoms.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.physical_exam.label(class="form-label") }}
+                            {{ form.physical_exam(class="form-control", rows="3", placeholder="Resultados do exame físico...") }}
+                            {% if form.physical_exam.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.physical_exam.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.diagnosis.label(class="form-label") }}
+                            {{ form.diagnosis(class="form-control", rows="3", placeholder="Diagnóstico clínico...") }}
+                            {% if form.diagnosis.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.diagnosis.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.treatment_plan.label(class="form-label") }}
+                            {{ form.treatment_plan(class="form-control", rows="4", placeholder="Plano de tratamento e conduta médica...") }}
+                            {% if form.treatment_plan.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.treatment_plan.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.observations.label(class="form-label") }}
+                            {{ form.observations(class="form-control", rows="3", placeholder="Observações adicionais...") }}
+                            {% if form.observations.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.observations.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('patient_view', id=patient.id) }}" class="btn btn-secondary me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Salvar Prontuário
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Informações do Paciente</h6>
+                </div>
+                <div class="card-body">
+                    {% if patient.medical_history %}
+                    <h6 class="text-primary">Histórico Médico</h6>
+                    <p class="small">{{ patient.medical_history }}</p>
+                    {% endif %}
+                    
+                    {% if patient.allergies %}
+                    <h6 class="text-danger">Alergias</h6>
+                    <p class="small">{{ patient.allergies }}</p>
+                    {% endif %}
+                    
+                    {% if patient.current_medications %}
+                    <h6 class="text-warning">Medicamentos Atuais</h6>
+                    <p class="small">{{ patient.current_medications }}</p>
+                    {% endif %}
+                    
+                    {% if not patient.medical_history and not patient.allergies and not patient.current_medications %}
+                    <p class="text-muted">Nenhuma informação médica adicional disponível.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Próximos Passos</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">Após salvar o prontuário, você poderá:</p>
+                    <ul class="small">
+                        <li>Criar uma prescrição ortomolecular</li>
+                        <li>Solicitar exames laboratoriais</li>
+                        <li>Agendar retorno</li>
+                        <li>Registrar pagamento da consulta</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

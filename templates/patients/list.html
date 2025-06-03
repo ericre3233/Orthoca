@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Pacientes - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Pacientes</h1>
+                <a href="{{ url_for('patient_new') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Novo Paciente
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-auto flex-grow-1">
+                            <input type="text" name="search" class="form-control" placeholder="Buscar por nome ou CPF..." value="{{ search }}">
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fas fa-search me-1"></i>Buscar
+                            </button>
+                        </div>
+                        {% if search %}
+                        <div class="col-auto">
+                            <a href="{{ url_for('patients_list') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Limpar
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Patients Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    {% if patients %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>CPF</th>
+                                    <th>Data de Nascimento</th>
+                                    <th>Telefone</th>
+                                    <th>Email</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for patient in patients %}
+                                <tr>
+                                    <td>{{ patient.name }}</td>
+                                    <td>{{ patient.cpf }}</td>
+                                    <td>{{ patient.birth_date.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ patient.phone }}</td>
+                                    <td>{{ patient.email or '-' }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('patient_view', id=patient.id) }}" class="btn btn-info btn-sm" title="Ver Detalhes">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('patient_edit', id=patient.id) }}" class="btn btn-warning btn-sm" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ url_for('appointment_new') }}?patient_id={{ patient.id }}" class="btn btn-success btn-sm" title="Agendar Consulta">
+                                                <i class="fas fa-calendar-plus"></i>
+                                            </a>
+                                            {% if current_user.role in ['doctor', 'admin'] %}
+                                            <a href="{{ url_for('medical_record_new', patient_id=patient.id) }}" class="btn btn-primary btn-sm" title="Novo Prontuário">
+                                                <i class="fas fa-file-medical"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
+                        <h5 class="text-muted">
+                            {% if search %}
+                                Nenhum paciente encontrado para "{{ search }}"
+                            {% else %}
+                                Nenhum paciente cadastrado
+                            {% endif %}
+                        </h5>
+                        <p class="text-muted mb-3">
+                            {% if search %}
+                                Tente buscar com outros termos ou
+                            {% else %}
+                                Comece adicionando um novo paciente ao sistema.
+                            {% endif %}
+                        </p>
+                        <a href="{{ url_for('patient_new') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Novo Paciente
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

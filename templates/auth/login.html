@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Clínica Ortomolecular</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gradient-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12 col-md-9">
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-0">
+                        <div class="row">
+                            <div class="col-lg-6 d-none d-lg-block bg-login-image">
+                                <div class="p-5 d-flex align-items-center justify-content-center h-100">
+                                    <div class="text-center">
+                                        <i class="fas fa-clinic-medical fa-5x text-primary mb-4"></i>
+                                        <h2 class="text-primary">Clínica Ortomolecular</h2>
+                                        <p class="text-muted">Sistema de Gestão Clínica</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="p-5">
+                                    <div class="text-center">
+                                        <h1 class="h4 text-gray-900 mb-4">Bem-vindo!</h1>
+                                    </div>
+                                    
+                                    <!-- Flash Messages -->
+                                    {% with messages = get_flashed_messages(with_categories=true) %}
+                                        {% if messages %}
+                                            {% for category, message in messages %}
+                                                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                                                    {{ message }}
+                                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endwith %}
+                                    
+                                    <form method="POST" class="user">
+                                        {{ form.hidden_tag() }}
+                                        <div class="form-group mb-3">
+                                            {{ form.username.label(class="form-label") }}
+                                            {{ form.username(class="form-control form-control-user") }}
+                                            {% if form.username.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.username.errors %}
+                                                        <div>{{ error }}</div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            {{ form.password.label(class="form-label") }}
+                                            {{ form.password(class="form-control form-control-user") }}
+                                            {% if form.password.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {% for error in form.password.errors %}
+                                                        <div>{{ error }}</div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-user btn-block w-100">
+                                            <i class="fas fa-sign-in-alt me-1"></i>Entrar
+                                        </button>
+                                    </form>
+                                    
+                                    <hr>
+                                    <div class="text-center small">
+                                        <p class="text-muted">
+                                            Sistema de Gestão Clínica<br>
+                                            <strong>Usuário padrão:</strong> admin<br>
+                                            <strong>Senha padrão:</strong> admin123
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

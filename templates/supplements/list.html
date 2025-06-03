@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Suplementos - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Suplementos Ortomoleculares</h1>
+                {% if current_user.role in ['doctor', 'admin'] %}
+                <a href="{{ url_for('supplement_new') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Novo Suplemento
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    {% if supplements %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Categoria</th>
+                                    <th>Descrição</th>
+                                    <th>Posologia</th>
+                                    <th>Status</th>
+                                    {% if current_user.role in ['doctor', 'admin'] %}
+                                    <th>Ações</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for supplement in supplements %}
+                                <tr>
+                                    <td><strong>{{ supplement.name }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {% if supplement.category == 'vitamin' %}Vitamina
+                                            {% elif supplement.category == 'mineral' %}Mineral
+                                            {% elif supplement.category == 'amino_acid' %}Aminoácido
+                                            {% elif supplement.category == 'herb' %}Fitoterápico
+                                            {% elif supplement.category == 'probiotic' %}Probiótico
+                                            {% elif supplement.category == 'enzyme' %}Enzima
+                                            {% else %}{{ supplement.category.title() }}
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ (supplement.description[:80] + '...') if supplement.description and supplement.description|length > 80 else (supplement.description or '-') }}</td>
+                                    <td>{{ (supplement.dosage_info[:60] + '...') if supplement.dosage_info and supplement.dosage_info|length > 60 else (supplement.dosage_info or 'Conforme orientação médica') }}</td>
+                                    <td>
+                                        {% if supplement.is_active %}
+                                            <span class="badge bg-success">Ativo</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inativo</span>
+                                        {% endif %}
+                                    </td>
+                                    {% if current_user.role in ['doctor', 'admin'] %}
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#supplementModal{{ supplement.id }}" title="Ver Detalhes">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <a href="{{ url_for('supplement_edit', id=supplement.id) }}" class="btn btn-warning btn-sm" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                
+                                <!-- Supplement Details Modal -->
+                                <div class="modal fade" id="supplementModal{{ supplement.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">{{ supplement.name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6 class="text-primary">Informações Básicas</h6>
+                                                        <p><strong>Categoria:</strong> 
+                                                            {% if supplement.category == 'vitamin' %}Vitamina
+                                                            {% elif supplement.category == 'mineral' %}Mineral
+                                                            {% elif supplement.category == 'amino_acid' %}Aminoácido
+                                                            {% elif supplement.category == 'herb' %}Fitoterápico
+                                                            {% elif supplement.category == 'probiotic' %}Probiótico
+                                                            {% elif supplement.category == 'enzyme' %}Enzima
+                                                            {% else %}{{ supplement.category.title() }}
+                                                            {% endif %}
+                                                        </p>
+                                                        <p><strong>Status:</strong> 
+                                                            {% if supplement.is_active %}
+                                                                <span class="badge bg-success">Ativo</span>
+                                                            {% else %}
+                                                                <span class="badge bg-danger">Inativo</span>
+                                                            {% endif %}
+                                                        </p>
+                                                        <p><strong>Cadastrado em:</strong> {{ supplement.created_at.strftime('%d/%m/%Y') }}</p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        {% if supplement.dosage_info %}
+                                                        <h6 class="text-primary">Posologia</h6>
+                                                        <p>{{ supplement.dosage_info }}</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                
+                                                {% if supplement.description %}
+                                                <h6 class="text-primary">Descrição</h6>
+                                                <p>{{ supplement.description }}</p>
+                                                {% endif %}
+                                                
+                                                {% if supplement.observations %}
+                                                <h6 class="text-primary">Observações</h6>
+                                                <p>{{ supplement.observations }}</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-pills fa-3x text-gray-300 mb-3"></i>
+                        <h5 class="text-muted">Nenhum suplemento cadastrado</h5>
+                        <p class="text-muted mb-3">Cadastre suplementos para facilitar a criação de prescrições ortomoleculares.</p>
+                        {% if current_user.role in ['doctor', 'admin'] %}
+                        <a href="{{ url_for('supplement_new') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Cadastrar Primeiro Suplemento
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

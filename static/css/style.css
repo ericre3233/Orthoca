@@ -1,0 +1,372 @@
+/* Custom CSS for Orthomolecular Clinic */
+
+:root {
+    --primary: 210 100% 50%; /* #007bff */
+    --primary-dark: 210 100% 35%; /* #0056b3 */
+    --success: 120 100% 35%; /* #28a745 */
+    --info: 190 100% 50%; /* #17a2b8 */
+    --warning: 45 100% 50%; /* #ffc107 */
+    --danger: 0 100% 50%; /* #dc3545 */
+    --light: 210 11% 98%; /* #f8f9fa */
+    --dark: 210 11% 21%; /* #343a40 */
+    --gray-100: 210 17% 98%; /* #f8f9fa */
+    --gray-200: 210 14% 89%; /* #e9ecef */
+    --gray-300: 210 11% 71%; /* #adb5bd */
+    --gray-400: 210 9% 53%; /* #6c757d */
+    --gray-500: 210 7% 46%; /* #495057 */
+    --gray-600: 210 9% 31%; /* #343a40 */
+    --gray-700: 210 10% 23%; /* #495057 */
+    --gray-800: 210 11% 15%; /* #212529 */
+    --gray-900: 210 11% 7%; /* #1a1e21 */
+}
+
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: hsl(var(--light));
+    color: hsl(var(--gray-800));
+}
+
+/* Main content when logged in */
+.main-content {
+    padding-top: 80px; /* Account for fixed navbar */
+    min-height: 100vh;
+    background-color: hsl(var(--light));
+}
+
+/* Login page specific styles */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
+}
+
+.bg-login-image {
+    background: linear-gradient(135deg, rgba(0,123,255,0.1) 0%, rgba(0,86,179,0.1) 100%);
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid hsl(var(--gray-200));
+}
+
+/* Borders for statistics cards */
+.border-left-primary {
+    border-left: 4px solid hsl(var(--primary)) !important;
+}
+
+.border-left-success {
+    border-left: 4px solid hsl(var(--success)) !important;
+}
+
+.border-left-info {
+    border-left: 4px solid hsl(var(--info)) !important;
+}
+
+.border-left-warning {
+    border-left: 4px solid hsl(var(--warning)) !important;
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.nav-link {
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    transform: translateY(-1px);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, hsl(var(--success)) 0%, #1e7e34 100%);
+    border: none;
+}
+
+/* Tables */
+.table {
+    background-color: white;
+}
+
+.table th {
+    background-color: hsl(var(--gray-100));
+    border-color: hsl(var(--gray-200));
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    border-color: hsl(var(--gray-200));
+    vertical-align: middle;
+}
+
+.table-bordered {
+    border: 1px solid hsl(var(--gray-200));
+}
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid hsl(var(--gray-300));
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 0.2rem hsla(var(--primary), 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: hsl(var(--gray-700));
+    margin-bottom: 0.5rem;
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+}
+
+/* Alert */
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+/* Medical content specific styles */
+.medical-content {
+    line-height: 1.6;
+    white-space: pre-line;
+    font-size: 1rem;
+}
+
+.prescription-content {
+    font-family: 'Times New Roman', serif;
+    line-height: 1.8;
+}
+
+.prescription-text {
+    white-space: pre-line;
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.prescription-item {
+    background-color: hsl(var(--gray-100));
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid hsl(var(--success));
+}
+
+/* Statistics cards text styles */
+.text-xs {
+    font-size: 0.7rem !important;
+}
+
+.font-weight-bold {
+    font-weight: 700 !important;
+}
+
+.text-uppercase {
+    text-transform: uppercase !important;
+}
+
+.text-gray-800 {
+    color: hsl(var(--gray-800)) !important;
+}
+
+.text-gray-300 {
+    color: hsl(var(--gray-300)) !important;
+}
+
+/* Custom spacing */
+.no-gutters {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.no-gutters > .col,
+.no-gutters > [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+}
+
+/* Print styles for medical documents */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .prescription-content,
+    .medical-content {
+        font-size: 12pt;
+        line-height: 1.6;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .page-break {
+        page-break-before: always;
+    }
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Calendar specific styles */
+.fc-toolbar-title {
+    font-size: 1.75rem !important;
+    font-weight: 600 !important;
+    color: hsl(var(--gray-800)) !important;
+}
+
+.fc-button-primary {
+    background-color: hsl(var(--primary)) !important;
+    border-color: hsl(var(--primary)) !important;
+}
+
+.fc-event {
+    border-radius: 4px !important;
+    border: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .main-content {
+        padding-top: 70px;
+    }
+    
+    .d-sm-flex {
+        flex-direction: column !important;
+    }
+    
+    .d-sm-flex .btn {
+        margin-top: 10px;
+        width: 100%;
+    }
+    
+    .table-responsive {
+        border-radius: 8px;
+    }
+}
+
+/* Custom checkbox and radio styles */
+.form-check-input:checked {
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+}
+
+/* Dropdown styles */
+.dropdown-menu {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: hsl(var(--gray-100));
+    transform: translateX(5px);
+}
+
+/* Text colors */
+.text-primary { color: hsl(var(--primary)) !important; }
+.text-success { color: hsl(var(--success)) !important; }
+.text-info { color: hsl(var(--info)) !important; }
+.text-warning { color: hsl(var(--warning)) !important; }
+.text-danger { color: hsl(var(--danger)) !important; }
+.text-muted { color: hsl(var(--gray-500)) !important; }
+
+/* Background colors */
+.bg-primary { background-color: hsl(var(--primary)) !important; }
+.bg-success { background-color: hsl(var(--success)) !important; }
+.bg-info { background-color: hsl(var(--info)) !important; }
+.bg-warning { background-color: hsl(var(--warning)) !important; }
+.bg-danger { background-color: hsl(var(--danger)) !important; }
+
+/* Modal improvements */
+.modal-content {
+    border-radius: 10px;
+    border: none;
+}
+
+.modal-header {
+    border-bottom: 1px solid hsl(var(--gray-200));
+}
+
+.modal-footer {
+    border-top: 1px solid hsl(var(--gray-200));
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
+                <a href="{{ url_for('lab_tests_list') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Informações do Exame</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                {{ form.name.label(class="form-label") }}
+                                {{ form.name(class="form-control", placeholder="Ex: Hemograma Completo, Vitamina D, Homocisteína") }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.name.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.category.label(class="form-label") }}
+                                {{ form.category(class="form-select") }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.category.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                {{ form.reference_values.label(class="form-label") }}
+                                {{ form.reference_values(class="form-control", rows="3", placeholder="Ex: Homens: 30-100 ng/mL\nMulheres: 30-100 ng/mL") }}
+                                {% if form.reference_values.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.reference_values.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.unit.label(class="form-label") }}
+                                {{ form.unit(class="form-control", placeholder="Ex: mg/dL, ng/mL, UI/L") }}
+                                {% if form.unit.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.unit.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="3", placeholder="Descrição do exame, para que serve, como é realizado...") }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.description.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.observations.label(class="form-label") }}
+                            {{ form.observations(class="form-control", rows="2", placeholder="Preparação necessária, jejum, medicações que podem interferir...") }}
+                            {% if form.observations.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.observations.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_active(class="form-check-input") }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.is_active.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('lab_tests_list') }}" class="btn btn-secondary me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Salvar Exame
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Dicas</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li>Use nomes padronizados dos exames</li>
+                        <li>Inclua valores de referência por sexo/idade quando necessário</li>
+                        <li>Especifique unidades de medida corretamente</li>
+                        <li>Mencione preparação necessária (jejum, etc.)</li>
+                        <li>Categorize corretamente para organização</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Categorias</h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <p><strong>Sangue:</strong> Hemograma, Bioquímica</p>
+                        <p><strong>Urina:</strong> EAS, Urina 24h</p>
+                        <p><strong>Hormonal:</strong> Tireoide, Cortisol</p>
+                        <p><strong>Metabólico:</strong> Glicose, Vitaminas</p>
+                        <p class="mb-0"><strong>Imunológico:</strong> Anticorpos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
