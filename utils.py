@@ -4,6 +4,22 @@ from weasyprint import HTML, CSS
 from datetime import datetime
 import os
 import json
+import re
+
+def clean_prescription_text(text):
+    """Remove section markers from prescription text for PDF generation"""
+    if not text:
+        return ""
+    
+    # Remove the section markers
+    text = re.sub(r'--- Suplementos Selecionados ---', '', text)
+    text = re.sub(r'--- Fim dos Suplementos ---', '', text)
+    
+    # Clean up extra whitespace and line breaks
+    text = re.sub(r'\n\s*\n', '\n', text)  # Remove empty lines
+    text = text.strip()
+    
+    return text
 
 def send_appointment_confirmation(patient, appointment):
     """Send appointment confirmation via API"""
@@ -91,7 +107,7 @@ def generate_prescription_pdf(prescription):
         {f'''
         <div class="section">
             <div class="section-title">FÓRMULAS MANIPULADAS</div>
-            <div style="white-space: pre-line;">{prescription.custom_formulas}</div>
+            <div style="white-space: pre-line;">{clean_prescription_text(prescription.custom_formulas)}</div>
         </div>
         ''' if prescription.custom_formulas else ''}
         

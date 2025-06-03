@@ -124,7 +124,7 @@
                     </div>
                     {% endif %}
                     
-                    {% if not any([record.chief_complaint, record.anamnesis, record.symptoms, record.physical_exam, record.diagnosis, record.treatment_plan, record.observations]) %}
+                    {% if not (record.chief_complaint or record.anamnesis or record.symptoms or record.physical_exam or record.diagnosis or record.treatment_plan or record.observations) %}
                     <div class="text-center py-4">
                         <i class="fas fa-file-medical fa-3x text-gray-300 mb-3"></i>
                         <p class="text-muted">Este prontuário não possui informações detalhadas.</p>

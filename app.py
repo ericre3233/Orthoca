@@ -61,5 +61,16 @@ with app.app_context():
         db.session.commit()
         print("Admin user created: admin/admin123")
 
+# Add custom Jinja2 filters
+import json
+
+@app.template_filter('from_json')
+def from_json_filter(value):
+    """Convert JSON string to Python object"""
+    try:
+        return json.loads(value) if value else []
+    except (json.JSONDecodeError, TypeError):
+        return []
+
 # Import routes
 from routes import *
