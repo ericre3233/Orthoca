@@ -331,6 +331,22 @@ def supplement_new():
         return redirect(url_for('supplements_list'))
     return render_template('supplements/form.html', form=form, title='Novo Suplemento')
 
+@app.route('/supplements/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def supplement_edit(id):
+    if current_user.role not in ['doctor', 'admin']:
+        flash('Acesso negado.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    supplement = Supplement.query.get_or_404(id)
+    form = SupplementForm(obj=supplement)
+    if form.validate_on_submit():
+        form.populate_obj(supplement)
+        db.session.commit()
+        flash('Suplemento atualizado com sucesso!', 'success')
+        return redirect(url_for('supplements_list'))
+    return render_template('supplements/form.html', form=form, title='Editar Suplemento')
+
 # Lab test management routes
 @app.route('/lab-tests')
 @login_required
