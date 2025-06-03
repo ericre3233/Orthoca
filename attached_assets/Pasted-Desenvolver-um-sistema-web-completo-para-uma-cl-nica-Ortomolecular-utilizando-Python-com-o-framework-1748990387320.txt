@@ -1,0 +1,181 @@
+Desenvolver um sistema web completo para uma clínica Ortomolecular utilizando Python com o framework Django, 100% funcional no ambiente Replit, com as seguintes características:
+
+🧑‍⚕️ 1. Cadastro e Agendamento de Pacientes
+Cadastro completo de pacientes com:
+
+Nome
+
+CPF
+
+Data de nascimento
+
+Telefone
+
+E-mail
+
+Histórico clínico
+
+Agendamento de consultas com seleção de:
+
+Médico
+
+Data
+
+Horário
+
+Visualização da agenda por:
+
+Dia
+
+Semana
+
+Mês
+
+Envio automático de confirmação de consulta via API local (ex: OpenRouter ou outro backend local):
+
+A API deverá ser configurada com uma URL local como http://localhost:8001/api/send usando o método POST.
+
+O payload da requisição deve conter:
+
+json
+Copiar
+Editar
+{
+  "nome": "Maria Silva",
+  "contato": "+55 11 91234-5678",
+  "email": "maria@example.com",
+  "mensagem": "Sua consulta foi agendada para 05/06 às 14h.",
+  "canal": "whatsapp"
+}
+📁 2. Prontuário Médico
+Prontuário eletrônico com:
+
+Anamnese
+
+Sintomas
+
+Diagnóstico
+
+Conduta médica
+
+Histórico de atendimentos por paciente
+
+💊 3. Prescrição Médica Ortomolecular
+Criação de prescrição com:
+
+Campo livre para fórmulas manipuladas
+
+Seleção de suplementos do banco de dados
+
+Inserção de hemogramas ou outros exames cadastrados
+
+Impressão/exportação da prescrição em PDF com:
+
+Logotipo da clínica
+
+Nome e CRM do médico
+
+Assinatura digital e carimbo eletrônico
+
+📦 4. Cadastro de Suplementos e Hemogramas
+Cadastro e gerenciamento de:
+
+Suplementos ortomoleculares (nome, categoria, posologia, observações)
+
+Exames laboratoriais (como hemogramas, com nome, valores de referência, observações)
+
+Ambos devem estar disponíveis para seleção na prescrição médica
+
+💰 5. Módulo Financeiro e Recibos
+Registro de pagamentos por consulta ou procedimento
+
+Emissão de recibo em PDF com:
+
+Nome do paciente
+
+Valor
+
+Forma de pagamento
+
+Assinatura/carimbo do profissional
+
+Logotipo da clínica
+
+Relatórios financeiros:
+
+Por profissional
+
+Por período
+
+Totais da clínica
+
+🔐 6. Autenticação e Perfis de Usuário
+Controle de acesso com permissões por perfil:
+
+Admin
+
+Médico
+
+Recepcionista
+
+Financeiro
+
+🤖 7. Chatbot com Inteligência Artificial (via API local - OpenRouter)
+Integração de um chatbot baseado em IA utilizando API local do OpenRouter, com as seguintes funcionalidades:
+
+Objetivo:
+Atender pacientes automaticamente com respostas sobre:
+
+Disponibilidade de horários e agendamentos
+
+Explicações sobre tratamentos ortomoleculares
+
+Dúvidas frequentes sobre serviços, suplementos, exames
+
+Encaminhamento para contato humano, se necessário
+
+Funcionamento:
+Backend Django deve enviar e receber mensagens via requisição POST para a API local (ex: http://localhost:8002/chat)
+
+Exemplo de payload enviado:
+
+json
+Copiar
+Editar
+{
+  "messages": [
+    {"role": "system", "content": "Você é um assistente da Clínica Ortomolecular. Responda pacientes com educação, clareza e conhecimento sobre saúde ortomolecular."},
+    {"role": "user", "content": "Quais horários estão disponíveis esta semana?"}
+  ],
+  "model": "gpt-4",
+  "temperature": 0.7
+}
+Interface:
+Página web com:
+
+Campo de digitação para o paciente
+
+Lista de mensagens estilo chat (frontend simples com AJAX ou fetch)
+
+Respostas em tempo real
+
+Armazenamento das conversas no banco de dados
+
+⚙️ 8. Requisitos Técnicos
+Framework: Django (Python 3.x)
+
+Banco de dados: SQLite (compatível com Replit)
+
+Templates: Django Templates + Bootstrap
+
+Geração de PDF: WeasyPrint ou xhtml2pdf
+
+Integração com APIs locais via requests.post para:
+
+Envio de mensagens (WhatsApp/email)
+
+Comunicação com IA (chatbot)
+
+Interface responsiva e modular
+
+Código limpo e estruturado por apps (pacientes, consultas, prescricoes, financeiro, chatbot etc.)
