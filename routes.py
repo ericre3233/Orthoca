@@ -257,6 +257,9 @@ def prescription_new(patient_id):
     
     patient = Patient.query.get_or_404(patient_id)
     form = PrescriptionForm()
+    
+    # Populate choices for SelectField
+    form.patient_id.choices = [(patient.id, patient.name)]
     form.patient_id.data = patient_id
     
     supplements = Supplement.query.filter_by(is_active=True).all()

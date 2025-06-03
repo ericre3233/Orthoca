@@ -68,11 +68,19 @@
                         <!-- Supplements Selection -->
                         <div class="mb-4">
                             <label class="form-label">Suplementos do Banco de Dados</label>
+                            <div class="alert alert-info small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Suplementos selecionados serão automaticamente adicionados ao campo "Fórmulas Manipuladas"
+                            </div>
                             <div class="row">
                                 {% for supplement in supplements %}
                                 <div class="col-md-6 mb-2">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="supplements" value="{{ supplement.id }}" id="supplement_{{ supplement.id }}">
+                                        <input class="form-check-input supplement-checkbox" type="checkbox" name="supplements" 
+                                               value="{{ supplement.id }}" id="supplement_{{ supplement.id }}" 
+                                               data-name="{{ supplement.name }}" 
+                                               data-dosage="{{ supplement.dosage_info or 'Conforme orientação médica' }}"
+                                               onchange="updateFormulas()">
                                         <label class="form-check-label" for="supplement_{{ supplement.id }}">
                                             <strong>{{ supplement.name }}</strong>
                                             <small class="text-muted d-block">{{ supplement.dosage_info or 'Conforme orientação médica' }}</small>
@@ -188,4 +196,57 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateFormulas() {
+    const customFormulasTextarea = document.getElementById('custom_formulas');
+    const supplementCheckboxes = document.querySelectorAll('.supplement-checkbox:checked');
+    
+    // Get current text from textarea
+    let currentText = customFormulasTextarea.value;
+    
+    // Remove any previously added supplements section
+    currentText = currentText.replace(/\n*--- Suplementos Selecionados ---[\s\S]*?--- Fim dos Suplementos ---\n*/g, '');
+    
+    // If there are selected supplements, add them
+    if (supplementCheckboxes.length > 0) {
+        let supplementsSection = '\n\n--- Suplementos Selecionados ---\n';
+        
+        supplementCheckboxes.forEach(function(checkbox) {
+            const supplementName = checkbox.getAttribute('data-name');
+            const dosage = checkbox.getAttribute('data-dosage');
+            supplementsSection += `${supplementName} - ${dosage}\n`;
+        });
+        
+        supplementsSection += '--- Fim dos Suplementos ---';
+        
+        // Add supplements section to the end
+        currentText = currentText.trim() + supplementsSection;
+    }
+    
+    // Update textarea
+    customFormulasTextarea.value = currentText;
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up form validation to ensure patient_id is set
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const patientField = document.querySelector('input[name="patient_id"]');
+            if (!patientField) {
+                // Create hidden field for patient_id if it doesn't exist
+                const hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = 'patient_id';
+                hiddenField.value = '{{ patient.id }}';
+                form.appendChild(hiddenField);
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
