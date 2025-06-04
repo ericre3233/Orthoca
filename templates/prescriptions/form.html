@@ -115,6 +115,38 @@
                             {% endif %}
                         </div>
                         
+                        <!-- Hemogram Parameters Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">Parâmetros de Hemograma Solicitados</label>
+                            <div class="row">
+                                {% for hemogram in hemograms %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="hemograms" 
+                                               value="{{ hemogram.id }}" id="hemogram_{{ hemogram.id }}" 
+                                               data-name="{{ hemogram.name }}" 
+                                               data-type="{{ hemogram.parameter_type }}"
+                                               data-reference="{{ hemogram.reference_values or '' }}"
+                                               data-unit="{{ hemogram.unit or '' }}"
+                                               onchange="updateFormulas()">
+                                        <label class="form-check-label" for="hemogram_{{ hemogram.id }}">
+                                            <strong>{{ hemogram.name }}</strong>
+                                            {% if hemogram.unit %}
+                                            <span class="badge bg-info ms-1">{{ hemogram.unit }}</span>
+                                            {% endif %}
+                                            {% if hemogram.reference_values %}
+                                            <small class="text-muted d-block">Ref: {{ hemogram.reference_values[:50] }}{% if hemogram.reference_values|length > 50 %}...{% endif %}</small>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if not hemograms %}
+                            <p class="text-muted">Nenhum parâmetro de hemograma cadastrado. <a href="{{ url_for('hemogram_new') }}">Cadastrar parâmetros</a></p>
+                            {% endif %}
+                        </div>
+                        
                         <!-- Additional Instructions -->
                         <div class="mb-4">
                             {{ form.additional_instructions.label(class="form-label") }}
@@ -203,12 +235,14 @@
 function updateFormulas() {
     const customFormulasTextarea = document.getElementById('custom_formulas');
     const supplementCheckboxes = document.querySelectorAll('.supplement-checkbox:checked');
+    const hemogramCheckboxes = document.querySelectorAll('input[name="hemograms"]:checked');
     
     // Get current text from textarea
     let currentText = customFormulasTextarea.value;
     
-    // Remove any previously added supplements section
+    // Remove any previously added sections
     currentText = currentText.replace(/\n*--- Suplementos Selecionados ---[\s\S]*?--- Fim dos Suplementos ---\n*/g, '');
+    currentText = currentText.replace(/\n*--- Parâmetros de Hemograma Solicitados ---[\s\S]*?--- Fim dos Parâmetros ---\n*/g, '');
     
     // If there are selected supplements, add them
     if (supplementCheckboxes.length > 0) {
@@ -224,6 +258,31 @@ function updateFormulas() {
         
         // Add supplements section to the end
         currentText = currentText.trim() + supplementsSection;
+    }
+    
+    // If there are selected hemogram parameters, add them
+    if (hemogramCheckboxes.length > 0) {
+        let hemogramSection = '\n\n--- Parâmetros de Hemograma Solicitados ---\n';
+        
+        hemogramCheckboxes.forEach(function(checkbox) {
+            const hemogramName = checkbox.getAttribute('data-name');
+            const hemogramUnit = checkbox.getAttribute('data-unit');
+            const hemogramReference = checkbox.getAttribute('data-reference');
+            
+            hemogramSection += `• ${hemogramName}`;
+            if (hemogramUnit) {
+                hemogramSection += ` (${hemogramUnit})`;
+            }
+            if (hemogramReference) {
+                hemogramSection += ` - Ref: ${hemogramReference}`;
+            }
+            hemogramSection += '\n';
+        });
+        
+        hemogramSection += '--- Fim dos Parâmetros ---';
+        
+        // Add hemogram section to the end
+        currentText = currentText.trim() + hemogramSection;
     }
     
     // Update textarea

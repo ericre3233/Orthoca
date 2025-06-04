@@ -265,18 +265,33 @@ def prescription_new(patient_id):
     
     supplements = Supplement.query.filter_by(is_active=True).all()
     lab_tests = LabTest.query.filter_by(is_active=True).all()
+    hemograms = Hemogram.query.filter_by(is_active=True).all()
     
     if form.validate_on_submit():
-        # Get selected supplements and lab tests from form
+        # Get selected supplements, lab tests, and hemograms from form
         selected_supplements = request.form.getlist('supplements')
         selected_lab_tests = request.form.getlist('lab_tests')
+        selected_hemograms = request.form.getlist('hemograms')
+        
+        # Create hemogram data structure for storage
+        hemogram_data = []
+        for hemogram_id in selected_hemograms:
+            hemogram = Hemogram.query.get(hemogram_id)
+            if hemogram:
+                hemogram_data.append({
+                    'id': hemogram.id,
+                    'name': hemogram.name,
+                    'parameter_type': hemogram.parameter_type,
+                    'unit': hemogram.unit,
+                    'reference_values': hemogram.reference_values
+                })
         
         prescription = Prescription(
             patient_id=patient_id,
             doctor_id=current_user.id,
             custom_formulas=form.custom_formulas.data,
             supplements_prescribed=json.dumps(selected_supplements),
-            lab_tests_requested=json.dumps(selected_lab_tests),
+            lab_tests_requested=json.dumps(selected_lab_tests + [{'hemograms': hemogram_data}] if hemogram_data else selected_lab_tests),
             additional_instructions=form.additional_instructions.data,
             observations=form.observations.data
         )
@@ -286,7 +301,7 @@ def prescription_new(patient_id):
         return redirect(url_for('prescription_view', id=prescription.id))
     
     return render_template('prescriptions/form.html', form=form, patient=patient, 
-                         supplements=supplements, lab_tests=lab_tests, title='Nova Prescrição')
+                         supplements=supplements, lab_tests=lab_tests, hemograms=hemograms, title='Nova Prescrição')
 
 @app.route('/prescriptions/<int:id>')
 @login_required

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-microscope"></i> {{ title }}</h2>
+                <a href="{{ url_for('hemograms_list') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    {{ form.name.label(class="form-label") }}
+                                    {{ form.name(class="form-control") }}
+                                    {% if form.name.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.name.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.parameter_type.label(class="form-label") }}
+                                    {{ form.parameter_type(class="form-select") }}
+                                    {% if form.parameter_type.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.parameter_type.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.reference_values.label(class="form-label") }}
+                                    {{ form.reference_values(class="form-control", rows="3", placeholder="Ex: 4,5 - 5,9 milhões/mm³") }}
+                                    {% if form.reference_values.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.reference_values.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.unit.label(class="form-label") }}
+                                    {{ form.unit(class="form-control", placeholder="Ex: milhões/mm³, g/dL, %") }}
+                                    {% if form.unit.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.unit.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="3", placeholder="Descrição detalhada do parâmetro") }}
+                            {% if form.description.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.description.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.clinical_significance.label(class="form-label") }}
+                            {{ form.clinical_significance(class="form-control", rows="4", placeholder="Importância clínica, interpretação de resultados alterados, etc.") }}
+                            {% if form.clinical_significance.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.clinical_significance.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.observations.label(class="form-label") }}
+                            {{ form.observations(class="form-control", rows="3", placeholder="Observações clínicas adicionais") }}
+                            {% if form.observations.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.observations.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_active(class="form-check-input") }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <a href="{{ url_for('hemograms_list') }}" class="btn btn-secondary me-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-fill unit based on parameter type
+    const parameterType = document.getElementById('parameter_type');
+    const unitField = document.getElementById('unit');
+    
+    const unitMap = {
+        'hemaceas': 'milhões/mm³',
+        'hemoglobina': 'g/dL',
+        'hematocrito': '%',
+        'vcm': 'fL',
+        'hcm': 'pg',
+        'chcm': 'g/dL',
+        'rdw': '%',
+        'leucocitos': 'mil/mm³',
+        'neutrofilos': '%',
+        'linfocitos': '%',
+        'monocitos': '%',
+        'eosinofilos': '%',
+        'basofilos': '%',
+        'plaquetas': 'mil/mm³',
+        'vpm': 'fL'
+    };
+    
+    parameterType.addEventListener('change', function() {
+        const selectedType = this.value;
+        if (unitMap[selectedType] && !unitField.value) {
+            unitField.value = unitMap[selectedType];
+        }
+    });
+});
+</script>
+{% endblock %}
