@@ -88,6 +88,33 @@ class LabTestForm(FlaskForm):
     observations = TextAreaField('Observações', validators=[Optional()])
     is_active = BooleanField('Ativo', default=True)
 
+class HemogramForm(FlaskForm):
+    name = StringField('Nome do Parâmetro', validators=[DataRequired(), Length(max=100)])
+    parameter_type = SelectField('Tipo de Parâmetro', choices=[
+        ('hemaceas', 'Hemácias'),
+        ('hemoglobina', 'Hemoglobina'),
+        ('hematocrito', 'Hematócrito'),
+        ('vcm', 'VCM (Volume Corpuscular Médio)'),
+        ('hcm', 'HCM (Hemoglobina Corpuscular Média)'),
+        ('chcm', 'CHCM (Concentração de Hemoglobina Corpuscular Média)'),
+        ('rdw', 'RDW (Red Cell Distribution Width)'),
+        ('leucocitos', 'Leucócitos'),
+        ('neutrofilos', 'Neutrófilos'),
+        ('linfocitos', 'Linfócitos'),
+        ('monocitos', 'Monócitos'),
+        ('eosinofilos', 'Eosinófilos'),
+        ('basofilos', 'Basófilos'),
+        ('plaquetas', 'Plaquetas'),
+        ('vpm', 'VPM (Volume Plaquetário Médio)'),
+        ('other', 'Outros')
+    ], validators=[DataRequired()])
+    reference_values = TextAreaField('Valores de Referência', validators=[Optional()])
+    unit = StringField('Unidade', validators=[Optional(), Length(max=20)])
+    description = TextAreaField('Descrição', validators=[Optional()])
+    observations = TextAreaField('Observações Clínicas', validators=[Optional()])
+    clinical_significance = TextAreaField('Significado Clínico', validators=[Optional()])
+    is_active = BooleanField('Ativo', default=True)
+
 class PrescriptionForm(FlaskForm):
     patient_id = SelectField('Paciente', coerce=int, validators=[DataRequired()])
     custom_formulas = TextAreaField('Fórmulas Manipuladas', validators=[Optional()])

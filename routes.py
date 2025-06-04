@@ -6,6 +6,7 @@ from models import *
 from forms import *
 import json
 import requests
+import os
 from datetime import datetime, timedelta
 from utils import generate_prescription_pdf, generate_receipt_pdf, send_appointment_confirmation
 import uuid
@@ -380,6 +381,57 @@ def lab_test_new():
         flash('Exame cadastrado com sucesso!', 'success')
         return redirect(url_for('lab_tests_list'))
     return render_template('lab_tests/form.html', form=form, title='Novo Exame')
+
+# Hemogram Management
+@app.route('/hemograms')
+@login_required
+def hemograms_list():
+    hemograms = Hemogram.query.filter_by(is_active=True).all()
+    return render_template('hemograms/list.html', hemograms=hemograms)
+
+@app.route('/hemograms/new', methods=['GET', 'POST'])
+@login_required
+def hemogram_new():
+    if current_user.role not in ['admin', 'doctor']:
+        flash('Acesso negado. Apenas administradores e médicos podem cadastrar hemogramas.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    form = HemogramForm()
+    if form.validate_on_submit():
+        hemogram = Hemogram(
+            name=form.name.data,
+            parameter_type=form.parameter_type.data,
+            reference_values=form.reference_values.data,
+            unit=form.unit.data,
+            description=form.description.data,
+            observations=form.observations.data,
+            clinical_significance=form.clinical_significance.data,
+            is_active=form.is_active.data
+        )
+        db.session.add(hemogram)
+        db.session.commit()
+        flash('Parâmetro de hemograma cadastrado com sucesso!', 'success')
+        return redirect(url_for('hemograms_list'))
+    
+    return render_template('hemograms/form.html', form=form, title='Novo Parâmetro de Hemograma')
+
+@app.route('/hemograms/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def hemogram_edit(id):
+    if current_user.role not in ['admin', 'doctor']:
+        flash('Acesso negado. Apenas administradores e médicos podem editar hemogramas.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    hemogram = Hemogram.query.get_or_404(id)
+    form = HemogramForm(obj=hemogram)
+    
+    if form.validate_on_submit():
+        form.populate_obj(hemogram)
+        db.session.commit()
+        flash('Parâmetro de hemograma atualizado com sucesso!', 'success')
+        return redirect(url_for('hemograms_list'))
+    
+    return render_template('hemograms/form.html', form=form, title='Editar Parâmetro de Hemograma')
 
 # Financial routes
 @app.route('/financial')

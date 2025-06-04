@@ -88,6 +88,18 @@ class LabTest(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Hemogram(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)  # Nome do parâmetro
+    parameter_type = db.Column(db.String(50))  # hemaceas, leucocitos, plaquetas, etc.
+    reference_values = db.Column(Text)  # Valores de referência
+    unit = db.Column(db.String(20))  # milhões/mm³, mil/mm³, %, etc.
+    description = db.Column(Text)  # Descrição do parâmetro
+    observations = db.Column(Text)  # Observações clínicas
+    clinical_significance = db.Column(Text)  # Significado clínico
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 class Prescription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)

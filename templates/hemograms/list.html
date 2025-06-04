@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Hemogramas - Clínica Ortomolecular{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-microscope"></i> Parâmetros de Hemograma</h2>
+                {% if current_user.role in ['admin', 'doctor'] %}
+                <a href="{{ url_for('hemogram_new') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Novo Parâmetro
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Parâmetros Cadastrados</h5>
+                </div>
+                <div class="card-body">
+                    {% if hemograms %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nome do Parâmetro</th>
+                                    <th>Tipo</th>
+                                    <th>Unidade</th>
+                                    <th>Valores de Referência</th>
+                                    <th>Significado Clínico</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hemogram in hemograms %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ hemogram.name }}</strong>
+                                        {% if hemogram.description %}
+                                        <br><small class="text-muted">{{ hemogram.description[:100] }}{% if hemogram.description|length > 100 %}...{% endif %}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set type_map = {
+                                            'hemaceas': 'Hemácias',
+                                            'hemoglobina': 'Hemoglobina',
+                                            'hematocrito': 'Hematócrito',
+                                            'vcm': 'VCM',
+                                            'hcm': 'HCM',
+                                            'chcm': 'CHCM',
+                                            'rdw': 'RDW',
+                                            'leucocitos': 'Leucócitos',
+                                            'neutrofilos': 'Neutrófilos',
+                                            'linfocitos': 'Linfócitos',
+                                            'monocitos': 'Monócitos',
+                                            'eosinofilos': 'Eosinófilos',
+                                            'basofilos': 'Basófilos',
+                                            'plaquetas': 'Plaquetas',
+                                            'vpm': 'VPM',
+                                            'other': 'Outros'
+                                        } %}
+                                        <span class="badge bg-secondary">{{ type_map.get(hemogram.parameter_type, hemogram.parameter_type) }}</span>
+                                    </td>
+                                    <td>{{ hemogram.unit or '-' }}</td>
+                                    <td>
+                                        {% if hemogram.reference_values %}
+                                        <small>{{ hemogram.reference_values[:50] }}{% if hemogram.reference_values|length > 50 %}...{% endif %}</small>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if hemogram.clinical_significance %}
+                                        <small>{{ hemogram.clinical_significance[:80] }}{% if hemogram.clinical_significance|length > 80 %}...{% endif %}</small>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if current_user.role in ['admin', 'doctor'] %}
+                                        <a href="{{ url_for('hemogram_edit', id=hemogram.id) }}" 
+                                           class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-microscope fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Nenhum parâmetro de hemograma cadastrado</h5>
+                        {% if current_user.role in ['admin', 'doctor'] %}
+                        <p class="text-muted">Clique no botão "Novo Parâmetro" para começar.</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
