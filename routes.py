@@ -473,33 +473,62 @@ def chatbot_send():
     )
     db.session.add(conversation)
     
-    # Send to AI API
+    # Generate AI response using OpenAI
     try:
-        ai_response = requests.post(
-            'http://localhost:8002/chat',
-            json={
-                'messages': [
-                    {
-                        'role': 'system',
-                        'content': 'Você é um assistente da Clínica Ortomolecular. Responda pacientes com educação, clareza e conhecimento sobre saúde ortomolecular.'
-                    },
-                    {
-                        'role': 'user',
-                        'content': message
-                    }
-                ],
-                'model': 'gpt-4',
-                'temperature': 0.7
-            },
-            timeout=30
+        from openai import OpenAI
+        client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+        
+        # Get conversation history for context
+        recent_conversations = ChatConversation.query.filter_by(
+            session_id=session_id
+        ).order_by(ChatConversation.timestamp.desc()).limit(10).all()
+        
+        messages = [
+            {
+                'role': 'system',
+                'content': '''Você é um assistente virtual inteligente da Clínica Ortomolecular. 
+                
+Suas responsabilidades:
+- Responder perguntas sobre medicina ortomolecular, suplementos e saúde
+- Fornecer informações sobre horários, agendamentos e serviços da clínica
+- Orientar sobre tratamentos ortomoleculares de forma educativa
+- Ser empático, profissional e prestativo
+
+Informações da clínica:
+- Horário: Segunda a sexta 8h-18h, sábados 8h-12h
+- Telefone: (11) 3456-7890
+- WhatsApp: (11) 99999-9999
+- Email: contato@clinicaortomolecular.com.br
+- Especialidade: Medicina Ortomolecular, Nutrologia
+
+IMPORTANTE: Sempre recomende consulta médica para diagnósticos específicos. Não substitua orientação médica profissional.'''
+            }
+        ]
+        
+        # Add recent conversation history
+        for conv in reversed(recent_conversations[-5:]):  # Last 5 exchanges
+            if conv.message:
+                messages.append({'role': 'user', 'content': conv.message})
+            if conv.response:
+                messages.append({'role': 'assistant', 'content': conv.response})
+        
+        # Add current message
+        messages.append({'role': 'user', 'content': message})
+        
+        # Call OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-4o",  # Using the latest model
+            messages=messages,
+            temperature=0.7,
+            max_tokens=500
         )
         
-        if ai_response.ok:
-            response_text = ai_response.json().get('response', 'Desculpe, não consegui processar sua mensagem.')
-        else:
-            response_text = 'Desculpe, estou com dificuldades técnicas no momento. Tente novamente mais tarde.'
-    except:
-        response_text = 'Olá! Sou o assistente virtual da Clínica Ortomolecular. Como posso ajudá-lo hoje?'
+        response_text = response.choices[0].message.content
+        
+    except Exception as e:
+        print(f"OpenAI API error: {str(e)}")
+        # Fallback to predefined responses
+        response_text = get_fallback_response(message)
     
     # Save AI response
     conversation.response = response_text
@@ -509,6 +538,25 @@ def chatbot_send():
         'response': response_text,
         'session_id': session_id
     })
+
+def get_fallback_response(message):
+    """Fallback responses when AI is unavailable"""
+    message_lower = message.lower()
+    
+    if any(word in message_lower for word in ['horário', 'horario', 'atendimento', 'funciona']):
+        return "Nossa clínica funciona de segunda a sexta das 8h às 18h, e sábados das 8h às 12h. Para agendamentos, ligue (11) 3456-7890 ou WhatsApp (11) 99999-9999."
+    
+    elif any(word in message_lower for word in ['agendar', 'consulta', 'marcar']):
+        return "Para agendar sua consulta, você pode ligar para (11) 3456-7890, enviar WhatsApp para (11) 99999-9999 ou usar nosso sistema online."
+    
+    elif any(word in message_lower for word in ['ortomolecular', 'medicina']):
+        return "A medicina ortomolecular busca o equilíbrio do organismo através da correção de deficiências nutricionais com vitaminas, minerais e aminoácidos. Nossa equipe está preparada para orientá-lo."
+    
+    elif any(word in message_lower for word in ['contato', 'telefone', 'whatsapp']):
+        return "Você pode nos contatar pelos seguintes canais:\n📞 Telefone: (11) 3456-7890\n📱 WhatsApp: (11) 99999-9999\n📧 Email: contato@clinicaortomolecular.com.br"
+    
+    else:
+        return "Obrigado por entrar em contato! Sou o assistente virtual da Clínica Ortomolecular. Posso ajudá-lo com informações sobre nossos tratamentos, horários e agendamentos. Em que posso ajudá-lo?"
 
 # Error handlers
 @app.errorhandler(404)
