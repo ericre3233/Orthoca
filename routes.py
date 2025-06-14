@@ -65,9 +65,12 @@ def dashboard():
     stats = {
         'total_patients': Patient.query.count(),
         'appointments_today': Appointment.query.filter(
-            db.func.date(Appointment.appointment_date) == today
+            db.func.date(Appointment.appointment_date) == today,
+            (Appointment.status == 'scheduled') | (Appointment.status == 'confirmed')
         ).count(),
-        'pending_appointments': Appointment.query.filter_by(status='scheduled').count(),
+        'pending_appointments': Appointment.query.filter(
+            (Appointment.status == 'scheduled') | (Appointment.status == 'confirmed')
+        ).count(),
         'total_revenue_month': db.session.query(db.func.sum(Payment.amount)).filter(
             db.func.extract('month', Payment.payment_date) == datetime.now().month,
             db.func.extract('year', Payment.payment_date) == datetime.now().year
@@ -91,6 +94,23 @@ def patients_list():
         query = query.filter(Patient.name.contains(search) | Patient.cpf.contains(search))
     patients = query.order_by(Patient.name).all()
     return render_template('patients/list.html', patients=patients, search=search)
+
+@app.route('/patients/<int:id>/delete', methods=['POST'])
+@login_required
+def patient_delete(id):
+    patient = Patient.query.get_or_404(id)
+
+    # Check user permissions
+    if current_user.role not in ['doctor', 'admin']:
+        flash('Você não tem permissão para deletar este paciente.', 'error')
+        return redirect(url_for('patients_list'))
+
+    # Delete the patient
+    db.session.delete(patient)
+    db.session.commit()
+
+    flash('Paciente deletado com sucesso!', 'success')
+    return redirect(url_for('patients_list'))
 
 @app.route('/patients/new', methods=['GET', 'POST'])
 @login_required
@@ -148,10 +168,70 @@ def appointments_list():
     appointments = query.order_by(Appointment.appointment_date).all()
     return render_template('appointments/list.html', appointments=appointments, date_filter=date_filter)
 
+@app.route('/appointments/<int:id>/delete', methods=['POST'])
+@login_required
+def appointment_delete(id):
+    appointment = Appointment.query.get_or_404(id)
+    
+    # Check user permissions
+    if current_user.role not in ['doctor', 'admin']:
+        flash('Você não tem permissão para deletar esta consulta.', 'error')
+        return redirect(url_for('appointments_list'))
+    
+    db.session.delete(appointment)
+    db.session.commit()
+    
+    flash('Consulta deletada com sucesso!', 'success')
+    return redirect(url_for('appointments_list'))
+
+@app.route('/appointments/<int:id>/complete', methods=['POST'])
+@login_required
+def appointment_complete(id):
+    appointment = Appointment.query.get_or_404(id)
+
+    # Check user permissions
+    if current_user.role not in ['doctor', 'admin']:
+        flash('Você não tem permissão para finalizar esta consulta.', 'error')
+        return redirect(url_for('appointments_list'))
+
+    # Update appointment status to 'completed'
+    appointment.status = 'completed'
+    db.session.commit()
+
+    flash('Consulta marcada como finalizada com sucesso!', 'success')
+    return redirect(url_for('appointments_list'))
+
 @app.route('/appointments/calendar')
 @login_required
 def appointments_calendar():
     return render_template('appointments/calendar.html')
+
+@app.route('/appointments/<int:id>/confirm', methods=['POST'])
+@login_required
+def appointment_confirm(id):
+    appointment = Appointment.query.get_or_404(id)
+
+    if current_user.role not in ['doctor', 'admin']:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': 'Você não tem permissão para confirmar esta consulta.'}), 403
+        else:
+            flash('Você não tem permissão para confirmar esta consulta.', 'error')
+            return redirect(url_for('appointments_list'))
+
+    try:
+        appointment.status = 'confirmed'
+        db.session.commit()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': True})
+        else:
+            flash('Consulta confirmada com sucesso!', 'success')
+            return redirect(url_for('appointments_list'))
+    except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': 'Erro ao confirmar consulta. Tente novamente.'}), 500
+        else:
+            flash('Erro ao confirmar consulta. Tente novamente.', 'error')
+            return redirect(url_for('appointments_list'))
 
 @app.route('/appointments/api')
 @login_required
@@ -164,7 +244,8 @@ def appointments_api():
             'title': f'{apt.patient.name} - Dr. {apt.doctor.name}',
             'start': apt.appointment_date.isoformat(),
             'end': (apt.appointment_date + timedelta(minutes=apt.duration)).isoformat(),
-            'backgroundColor': '#007bff' if apt.status == 'scheduled' else '#28a745'
+            'backgroundColor': '#007bff' if apt.status == 'scheduled' else '#28a745',
+            'status': apt.status
         })
     return jsonify(events)
 
@@ -203,6 +284,24 @@ def medical_records_list():
     else:
         records = MedicalRecord.query.order_by(MedicalRecord.date.desc()).all()
     return render_template('medical_records/list.html', records=records)
+
+@app.route('/medical-records/<int:id>/delete', methods=['POST'])
+@login_required
+def medical_record_delete(id):
+    record = MedicalRecord.query.get_or_404(id)
+    
+    # Check user permissions
+    if current_user.role not in ['doctor', 'admin'] or (current_user.role == 'doctor' and record.doctor_id != current_user.id):
+        flash('Você não tem permissão para deletar este prontuário.', 'error')
+        return redirect(url_for('medical_record_view', id=id))
+    
+    patient_id = record.patient_id
+    
+    db.session.delete(record)
+    db.session.commit()
+    
+    flash('Prontuário deletado com sucesso!', 'success')
+    return redirect(url_for('medical_records_list'))
 
 @app.route('/medical-records/new/<int:patient_id>', methods=['GET', 'POST'])
 @login_required
@@ -252,6 +351,7 @@ def prescriptions_list():
 @app.route('/prescriptions/new/<int:patient_id>', methods=['GET', 'POST'])
 @login_required
 def prescription_new(patient_id):
+    appointment_id = request.args.get('appointment_id', type=int)
     if current_user.role not in ['doctor', 'admin']:
         flash('Acesso negado.', 'error')
         return redirect(url_for('dashboard'))
@@ -296,18 +396,26 @@ def prescription_new(patient_id):
             observations=form.observations.data
         )
         db.session.add(prescription)
+        
+        # Update appointment status to 'completed' if appointment_id provided
+        if appointment_id:
+            appointment = Appointment.query.get(appointment_id)
+            if appointment:
+                # Atualizar o status para 'completed'
+                appointment.status = 'completed'
+        
         db.session.commit()
         flash('Prescrição criada com sucesso!', 'success')
-        return redirect(url_for('prescription_view', id=prescription.id))
-    
-    return render_template('prescriptions/form.html', form=form, patient=patient, 
-                         supplements=supplements, lab_tests=lab_tests, hemograms=hemograms, title='Nova Prescrição')
+        return redirect(url_for('prescriptions_list'))
+    return render_template('prescriptions/form.html', form=form, patient=patient, supplements=supplements, lab_tests=lab_tests, hemograms=hemograms, title='Nova Prescrição')
+
+from models import Supplement
 
 @app.route('/prescriptions/<int:id>')
 @login_required
 def prescription_view(id):
     prescription = Prescription.query.get_or_404(id)
-    return render_template('prescriptions/view.html', prescription=prescription)
+    return render_template('prescriptions/view.html', prescription=prescription, supplements=Supplement)
 
 @app.route('/prescriptions/<int:id>/pdf')
 @login_required
@@ -319,6 +427,23 @@ def prescription_pdf(id):
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=prescription_{id}.pdf'
     return response
+
+@app.route('/prescriptions/<int:id>/delete', methods=['POST'])
+@login_required
+def prescription_delete(id):
+    prescription = Prescription.query.get_or_404(id)
+    
+    # Verificar se o usuário tem permissão para deletar
+    if current_user.role not in ['doctor', 'admin'] or (current_user.role == 'doctor' and prescription.doctor_id != current_user.id):
+        flash('Você não tem permissão para deletar esta prescrição.', 'error')
+        return redirect(url_for('prescription_view', id=id))
+    
+    # Deletar a prescrição
+    db.session.delete(prescription)
+    db.session.commit()
+    
+    flash('Prescrição deletada com sucesso!', 'success')
+    return redirect(url_for('prescriptions_list'))
 
 # Supplement management routes
 @app.route('/supplements')
@@ -384,11 +509,7 @@ def lab_test_new():
     if form.validate_on_submit():
         lab_test = LabTest(
             name=form.name.data,
-            category=form.category.data,
-            reference_values=form.reference_values.data,
-            unit=form.unit.data,
             description=form.description.data,
-            observations=form.observations.data,
             is_active=form.is_active.data
         )
         db.session.add(lab_test)
@@ -396,6 +517,22 @@ def lab_test_new():
         flash('Exame cadastrado com sucesso!', 'success')
         return redirect(url_for('lab_tests_list'))
     return render_template('lab_tests/form.html', form=form, title='Novo Exame')
+
+@app.route('/lab-tests/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def lab_tests_edit(id):
+    if current_user.role not in ['doctor', 'admin']:
+        flash('Acesso negado.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    lab_test = LabTest.query.get_or_404(id)
+    form = LabTestForm(obj=lab_test)
+    if form.validate_on_submit():
+        form.populate_obj(lab_test)
+        db.session.commit()
+        flash('Exame atualizado com sucesso!', 'success')
+        return redirect(url_for('lab_tests_list'))
+    return render_template('lab_tests/form.html', form=form, title='Editar Exame')
 
 # Hemogram Management
 @app.route('/hemograms')

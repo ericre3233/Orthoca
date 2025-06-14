@@ -17,6 +17,9 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
+# Add Python built-in any function to Jinja2 environment globals
+app.jinja_env.globals.update(any=any)
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 

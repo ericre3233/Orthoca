@@ -49,6 +49,11 @@
                                             <a href="{{ url_for('prescription_new', patient_id=record.patient.id) }}" class="btn btn-success btn-sm" title="Nova Prescrição">
                                                 <i class="fas fa-prescription"></i>
                                             </a>
+                                            <form method="POST" action="{{ url_for('medical_record_delete', id=record.id) }}" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja deletar este prontuário?');">
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Excluir Prontuário">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

@@ -103,6 +103,27 @@
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             {% endif %}
+                                            {% if current_user.role in ['doctor', 'admin'] %}
+                                            <form method="POST" action="{{ url_for('appointment_delete', id=appointment.id) }}" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja deletar esta consulta?');">
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Excluir Consulta">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                            {% if appointment.status == 'confirmed' %}
+                                            <form method="POST" action="{{ url_for('appointment_complete', id=appointment.id) }}" style="display:inline;" onsubmit="return confirm('Marcar esta consulta como finalizada?');">
+                                                <button type="submit" class="btn btn-success btn-sm" title="Marcar como Finalizada">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            {% elif appointment.status == 'scheduled' %}
+                                            <form method="POST" action="{{ url_for('appointment_confirm', id=appointment.id) }}" style="display:inline;" onsubmit="return confirm('Marcar esta consulta como confirmada?');">
+                                                <input type="hidden" name="dummy" value="1" />
+                                                <button type="submit" class="btn btn-info btn-sm" title="Marcar como Confirmada">
+                                                    <i class="fas fa-check-double"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>

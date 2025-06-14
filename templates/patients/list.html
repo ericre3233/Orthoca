@@ -83,6 +83,11 @@
                                             <a href="{{ url_for('medical_record_new', patient_id=patient.id) }}" class="btn btn-primary btn-sm" title="Novo Prontuário">
                                                 <i class="fas fa-file-medical"></i>
                                             </a>
+                                            <form method="POST" action="{{ url_for('patient_delete', id=patient.id) }}" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir este paciente?');">
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Excluir">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
                                             {% endif %}
                                         </div>
                                     </td>

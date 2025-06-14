@@ -120,22 +120,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 const status = event.extendedProps.status;
                 
                 switch(status) {
-                    case 'scheduled':
-                        info.el.style.backgroundColor = '#ffc107';
-                        info.el.style.borderColor = '#ffc107';
-                        break;
-                    case 'confirmed':
-                        info.el.style.backgroundColor = '#17a2b8';
-                        info.el.style.borderColor = '#17a2b8';
-                        break;
-                    case 'completed':
-                        info.el.style.backgroundColor = '#28a745';
-                        info.el.style.borderColor = '#28a745';
-                        break;
-                    case 'cancelled':
-                        info.el.style.backgroundColor = '#dc3545';
-                        info.el.style.borderColor = '#dc3545';
-                        break;
+            case 'scheduled':
+                info.el.style.backgroundColor = '#ffc107';
+                info.el.style.borderColor = '#ffc107';
+                if (info.view.type === 'dayGridMonth') {
+                    info.el.style.color = '#ffffff';  // White text color for Month view
+                } else {
+                    info.el.style.color = '#000000 !important';  // Black text color for other views
+                }
+                info.el.style.fontWeight = 'bold'; // Make text bold for better visibility
+                break;
+            case 'confirmed':
+                info.el.style.backgroundColor = '#17a2b8';
+                info.el.style.borderColor = '#17a2b8';
+                info.el.style.color = '#ffffff';  // Change text color to white for confirmed
+                break;
+            case 'completed':
+                info.el.style.backgroundColor = '#28a745';
+                info.el.style.borderColor = '#28a745';
+                break;
+            case 'cancelled':
+                info.el.style.backgroundColor = '#dc3545';
+                info.el.style.borderColor = '#dc3545';
                 }
             }
         });
@@ -256,8 +262,8 @@ function formatDateTime(date) {
 }
 
 function confirmAppointment(appointmentId) {
+    console.log('confirmAppointment called with id:', appointmentId);
     if (confirm('Deseja confirmar esta consulta?')) {
-        // In a real application, this would make an AJAX call to update the appointment
         fetch(`/appointments/${appointmentId}/confirm`, {
             method: 'POST',
             headers: {
@@ -266,8 +272,12 @@ function confirmAppointment(appointmentId) {
             },
             body: JSON.stringify({ status: 'confirmed' })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Fetch response status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Fetch response data:', data);
             if (data.success) {
                 // Refresh the calendar
                 const calendarEl = document.getElementById('calendar');
@@ -278,10 +288,14 @@ function confirmAppointment(appointmentId) {
                 
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
-                modal.hide();
+                if (modal) {
+                    modal.hide();
+                }
                 
                 // Show success message
                 showNotification('Consulta confirmada com sucesso!', 'success');
+                // Reload the page to update the appointments list
+                window.location.reload();
             } else {
                 alert('Erro ao confirmar consulta: ' + data.message);
             }

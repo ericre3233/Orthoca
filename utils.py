@@ -1,6 +1,10 @@
 import requests
 from io import BytesIO
-from weasyprint import HTML, CSS
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.units import inch
 from datetime import datetime
 import os
 import json
@@ -48,172 +52,192 @@ def send_appointment_confirmation(patient, appointment):
 
 def generate_prescription_pdf(prescription):
     """Generate PDF for prescription"""
-    
-    # Parse supplements and lab tests
-    supplements_data = []
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    story = []
+
+    # Add clinic name
+    clinic_style = ParagraphStyle(
+        'ClinicStyle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#007bff'),
+        alignment=1  # Center alignment
+    )
+    story.append(Paragraph("CLÍNICA ORTOMOLECULAR", clinic_style))
+    story.append(Spacer(1, 20))
+
+    # Add doctor info
+    doctor_style = ParagraphStyle(
+        'DoctorStyle',
+        parent=styles['Normal'],
+        fontSize=12,
+        alignment=1
+    )
+    story.append(Paragraph(f"Dr. {prescription.doctor.name}", doctor_style))
+    story.append(Paragraph(f"CRM: {prescription.doctor.crm or 'N/A'}", doctor_style))
+    story.append(Paragraph(f"Especialidade: {prescription.doctor.specialty or 'Medicina Ortomolecular'}", doctor_style))
+    story.append(Spacer(1, 20))
+
+    # Add patient info
+    patient_data = [
+        ["Paciente:", prescription.patient.name],
+        ["Data de Nascimento:", prescription.patient.birth_date.strftime('%d/%m/%Y')],
+        ["CPF:", prescription.patient.cpf],
+        ["Data da Prescrição:", prescription.date.strftime('%d/%m/%Y')]
+    ]
+    patient_table = Table(patient_data, colWidths=[2*inch, 4*inch])
+    patient_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    story.append(patient_table)
+    story.append(Spacer(1, 20))
+
+    # Add custom formulas if any
+    if prescription.custom_formulas:
+        story.append(Paragraph("FÓRMULAS MANIPULADAS", styles['Heading2']))
+        story.append(Paragraph(clean_prescription_text(prescription.custom_formulas), styles['Normal']))
+        story.append(Spacer(1, 20))
+
+    # Add supplements if any
     if prescription.supplements_prescribed:
         try:
             supplement_ids = json.loads(prescription.supplements_prescribed)
             from models import Supplement
             supplements_data = Supplement.query.filter(Supplement.id.in_(supplement_ids)).all()
+            
+            if supplements_data:
+                story.append(Paragraph("SUPLEMENTOS PRESCRITOS", styles['Heading2']))
+                for sup in supplements_data:
+                    story.append(Paragraph(f"<b>{sup.name}</b>", styles['Normal']))
+                    story.append(Paragraph(sup.dosage_info or "Conforme orientação médica", styles['Normal']))
+                    story.append(Spacer(1, 10))
         except:
             pass
     
-    lab_tests_data = []
+    # Add lab tests if any
     if prescription.lab_tests_requested:
         try:
             lab_test_ids = json.loads(prescription.lab_tests_requested)
             from models import LabTest
             lab_tests_data = LabTest.query.filter(LabTest.id.in_(lab_test_ids)).all()
+            
+            if lab_tests_data:
+                story.append(Paragraph("EXAMES SOLICITADOS", styles['Heading2']))
+                for test in lab_tests_data:
+                    story.append(Paragraph(f"{test.name} - {test.description or ''}", styles['Normal']))
+                    story.append(Spacer(1, 10))
         except:
             pass
     
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <title>Prescrição Médica</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            .header {{ text-align: center; border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 30px; }}
-            .clinic-name {{ font-size: 24px; font-weight: bold; color: #007bff; }}
-            .doctor-info {{ margin-top: 10px; }}
-            .patient-info {{ background-color: #f8f9fa; padding: 15px; margin-bottom: 20px; }}
-            .section {{ margin-bottom: 20px; }}
-            .section-title {{ font-weight: bold; color: #007bff; border-bottom: 1px solid #dee2e6; padding-bottom: 5px; }}
-            .prescription-item {{ margin: 10px 0; padding: 10px; background-color: #f8f9fa; }}
-            .footer {{ margin-top: 50px; text-align: center; }}
-            .signature {{ border-top: 1px solid #000; width: 300px; margin: 20px auto 0; padding-top: 10px; }}
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <div class="clinic-name">CLÍNICA ORTOMOLECULAR</div>
-            <div class="doctor-info">
-                <div>Dr. {prescription.doctor.name}</div>
-                <div>CRM: {prescription.doctor.crm or 'N/A'}</div>
-                <div>Especialidade: {prescription.doctor.specialty or 'Medicina Ortomolecular'}</div>
-            </div>
-        </div>
-        
-        <div class="patient-info">
-            <strong>Paciente:</strong> {prescription.patient.name}<br>
-            <strong>Data de Nascimento:</strong> {prescription.patient.birth_date.strftime('%d/%m/%Y')}<br>
-            <strong>CPF:</strong> {prescription.patient.cpf}<br>
-            <strong>Data da Prescrição:</strong> {prescription.date.strftime('%d/%m/%Y')}
-        </div>
-        
-        {f'''
-        <div class="section">
-            <div class="section-title">FÓRMULAS MANIPULADAS</div>
-            <div style="white-space: pre-line;">{clean_prescription_text(prescription.custom_formulas)}</div>
-        </div>
-        ''' if prescription.custom_formulas else ''}
-        
-        {f'''
-        <div class="section">
-            <div class="section-title">SUPLEMENTOS PRESCRITOS</div>
-            {''.join([f'<div class="prescription-item"><strong>{sup.name}</strong><br>{sup.dosage_info or "Conforme orientação médica"}</div>' for sup in supplements_data])}
-        </div>
-        ''' if supplements_data else ''}
-        
-        {f'''
-        <div class="section">
-            <div class="section-title">EXAMES SOLICITADOS</div>
-            {''.join([f'<div class="prescription-item">{test.name} - {test.description or ""}</div>' for test in lab_tests_data])}
-        </div>
-        ''' if lab_tests_data else ''}
-        
-        {f'''
-        <div class="section">
-            <div class="section-title">INSTRUÇÕES ADICIONAIS</div>
-            <div style="white-space: pre-line;">{prescription.additional_instructions}</div>
-        </div>
-        ''' if prescription.additional_instructions else ''}
-        
-        {f'''
-        <div class="section">
-            <div class="section-title">OBSERVAÇÕES</div>
-            <div style="white-space: pre-line;">{prescription.observations}</div>
-        </div>
-        ''' if prescription.observations else ''}
-        
-        <div class="footer">
-            <div class="signature">
-                Dr. {prescription.doctor.name}<br>
-                CRM: {prescription.doctor.crm or 'N/A'}
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    
-    html_doc = HTML(string=html_content)
-    pdf_buffer = BytesIO()
-    html_doc.write_pdf(pdf_buffer)
-    pdf_buffer.seek(0)
-    return pdf_buffer.getvalue()
+    # Add additional instructions if any
+    if prescription.additional_instructions:
+        story.append(Paragraph("INSTRUÇÕES ADICIONAIS", styles['Heading2']))
+        story.append(Paragraph(prescription.additional_instructions, styles['Normal']))
+        story.append(Spacer(1, 20))
+
+    # Add observations if any
+    if prescription.observations:
+        story.append(Paragraph("OBSERVAÇÕES", styles['Heading2']))
+        story.append(Paragraph(prescription.observations, styles['Normal']))
+        story.append(Spacer(1, 20))
+
+    # Add signature
+    signature_style = ParagraphStyle(
+        'SignatureStyle',
+        parent=styles['Normal'],
+        fontSize=12,
+        alignment=1
+    )
+    story.append(Paragraph("_" * 40, signature_style))
+    story.append(Paragraph(f"Dr. {prescription.doctor.name}", signature_style))
+    story.append(Paragraph(f"CRM: {prescription.doctor.crm or 'N/A'}", signature_style))
+
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.getvalue()
 
 def generate_receipt_pdf(payment):
     """Generate PDF receipt for payment"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    story = []
+
+    # Add clinic name
+    clinic_style = ParagraphStyle(
+        'ClinicStyle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#28a745'),
+        alignment=1
+    )
+    story.append(Paragraph("CLÍNICA ORTOMOLECULAR", clinic_style))
+    story.append(Paragraph("RECIBO DE PAGAMENTO", clinic_style))
+    story.append(Spacer(1, 20))
+
+    # Add receipt info
+    payment_methods = {
+        'cash': 'Dinheiro',
+        'card': 'Cartão',
+        'pix': 'PIX',
+        'transfer': 'Transferência'
+    }
+
+    receipt_data = [
+        ["Recibo Nº:", payment.receipt_number],
+        ["Data:", payment.payment_date.strftime('%d/%m/%Y %H:%M')],
+        ["Paciente:", payment.patient.name],
+        ["CPF:", payment.patient.cpf],
+        ["Forma de Pagamento:", payment_methods.get(payment.payment_method, payment.payment_method)]
+    ]
     
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <title>Recibo de Pagamento</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            .header {{ text-align: center; border-bottom: 2px solid #28a745; padding-bottom: 20px; margin-bottom: 30px; }}
-            .clinic-name {{ font-size: 24px; font-weight: bold; color: #28a745; }}
-            .receipt-info {{ background-color: #f8f9fa; padding: 15px; margin-bottom: 20px; }}
-            .amount {{ font-size: 24px; font-weight: bold; color: #28a745; text-align: center; margin: 20px 0; }}
-            .footer {{ margin-top: 50px; text-align: center; }}
-            .signature {{ border-top: 1px solid #000; width: 300px; margin: 20px auto 0; padding-top: 10px; }}
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <div class="clinic-name">CLÍNICA ORTOMOLECULAR</div>
-            <div>RECIBO DE PAGAMENTO</div>
-        </div>
-        
-        <div class="receipt-info">
-            <strong>Recibo Nº:</strong> {payment.receipt_number}<br>
-            <strong>Data:</strong> {payment.payment_date.strftime('%d/%m/%Y %H:%M')}<br>
-            <strong>Paciente:</strong> {payment.patient.name}<br>
-            <strong>CPF:</strong> {payment.patient.cpf}<br>
-            {f'<strong>Descrição:</strong> {payment.description}<br>' if payment.description else ''}
-            <strong>Forma de Pagamento:</strong> {dict([
-                ('cash', 'Dinheiro'),
-                ('card', 'Cartão'),
-                ('pix', 'PIX'),
-                ('transfer', 'Transferência')
-            ]).get(payment.payment_method, payment.payment_method)}
-        </div>
-        
-        <div class="amount">
-            VALOR: R$ {payment.amount:.2f}
-        </div>
-        
-        <div style="text-align: center; margin: 30px 0;">
-            Recebi a quantia acima referente aos serviços prestados.
-        </div>
-        
-        <div class="footer">
-            <div class="signature">
-                Clínica Ortomolecular<br>
-                Assinatura do Responsável
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    
-    html_doc = HTML(string=html_content)
-    pdf_buffer = BytesIO()
-    html_doc.write_pdf(pdf_buffer)
-    pdf_buffer.seek(0)
-    return pdf_buffer.getvalue()
+    if payment.description:
+        receipt_data.append(["Descrição:", payment.description])
+
+    receipt_table = Table(receipt_data, colWidths=[2*inch, 4*inch])
+    receipt_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    story.append(receipt_table)
+    story.append(Spacer(1, 20))
+
+    # Add amount
+    amount_style = ParagraphStyle(
+        'AmountStyle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#28a745'),
+        alignment=1
+    )
+    story.append(Paragraph(f"VALOR: R$ {payment.amount:.2f}", amount_style))
+    story.append(Spacer(1, 40))
+
+    # Add signature
+    signature_style = ParagraphStyle(
+        'SignatureStyle',
+        parent=styles['Normal'],
+        fontSize=12,
+        alignment=1
+    )
+    story.append(Paragraph("_" * 40, signature_style))
+    story.append(Paragraph("Assinatura", signature_style))
+
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.getvalue()

@@ -51,6 +51,7 @@
                 <div class="card-body">
                     <form method="POST">
                         {{ form.hidden_tag() }}
+                        <input type="hidden" name="appointment_id" value="{{ request.args.get('appointment_id', '') }}">
                         
                         <!-- Custom Formulas -->
                         <div class="mb-4">
@@ -67,7 +68,7 @@
                         
                         <!-- Supplements Selection -->
                         <div class="mb-4">
-                            <label class="form-label">Suplementos do Banco de Dados</label>
+                            <label class="form-label">Suplementos:</label>
                             <div class="alert alert-info small">
                                 <i class="fas fa-info-circle me-1"></i>
                                 Suplementos selecionados serão automaticamente adicionados ao campo "Fórmulas Manipuladas"
@@ -94,30 +95,9 @@
                             {% endif %}
                         </div>
                         
-                        <!-- Lab Tests Selection -->
-                        <div class="mb-4">
-                            <label class="form-label">Exames Laboratoriais Solicitados</label>
-                            <div class="row">
-                                {% for lab_test in lab_tests %}
-                                <div class="col-md-6 mb-2">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="lab_tests" value="{{ lab_test.id }}" id="lab_test_{{ lab_test.id }}">
-                                        <label class="form-check-label" for="lab_test_{{ lab_test.id }}">
-                                            <strong>{{ lab_test.name }}</strong>
-                                            <small class="text-muted d-block">{{ lab_test.description or '' }}</small>
-                                        </label>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            {% if not lab_tests %}
-                            <p class="text-muted">Nenhum exame cadastrado. <a href="{{ url_for('lab_test_new') }}">Cadastrar exames</a></p>
-                            {% endif %}
-                        </div>
-                        
                         <!-- Hemogram Parameters Selection -->
                         <div class="mb-4">
-                            <label class="form-label">Parâmetros de Hemograma Solicitados</label>
+                            <label class="form-label">Exames Laboratoriais Solicitados</label>
                             <div class="row">
                                 {% for hemogram in hemograms %}
                                 <div class="col-md-6 mb-2">
@@ -244,6 +224,40 @@ function updateFormulas() {
     currentText = currentText.replace(/\n*--- Suplementos Selecionados ---[\s\S]*?--- Fim dos Suplementos ---\n*/g, '');
     currentText = currentText.replace(/\n*--- Parâmetros de Hemograma Solicitados ---[\s\S]*?--- Fim dos Parâmetros ---\n*/g, '');
     
+    // Get all supplement names and dosages for comparison
+    const allSupplements = Array.from(document.querySelectorAll('.supplement-checkbox')).map(checkbox => ({
+        name: checkbox.getAttribute('data-name'),
+        dosage: checkbox.getAttribute('data-dosage'),
+        text: `${checkbox.getAttribute('data-name')} - ${checkbox.getAttribute('data-dosage')}`
+    }));
+    
+    // Get all hemogram parameters for comparison
+    const allHemograms = Array.from(document.querySelectorAll('input[name="hemograms"]')).map(checkbox => ({
+        name: checkbox.getAttribute('data-name'),
+        parameterType: checkbox.getAttribute('data-type'),
+        unit: checkbox.getAttribute('data-unit'),
+        referenceValues: checkbox.getAttribute('data-reference'),
+        text: `${checkbox.getAttribute('data-name')} (${checkbox.getAttribute('data-type')}) - ${checkbox.getAttribute('data-unit')}`
+    }));
+    
+    // Remove all supplement lines from current text
+    allSupplements.forEach(supplement => {
+        const regex = new RegExp(`${supplement.text}\\n?`, 'g');
+        currentText = currentText.replace(regex, '');
+    });
+    
+    // Remove all hemogram lines from current text
+    allHemograms.forEach(hemogram => {
+        const regex = new RegExp(`${hemogram.text}\\n?`, 'g');
+        currentText = currentText.replace(regex, '');
+        
+        // Also remove reference values if they exist
+        if (hemogram.referenceValues) {
+            const refRegex = new RegExp(`Valores de referência: ${hemogram.referenceValues}\\n?`, 'g');
+            currentText = currentText.replace(refRegex, '');
+        }
+    });
+    
     // If there are selected supplements, add them
     if (supplementCheckboxes.length > 0) {
         let supplementsSection = '\n\n--- Suplementos Selecionados ---\n';
@@ -254,7 +268,7 @@ function updateFormulas() {
             supplementsSection += `${supplementName} - ${dosage}\n`;
         });
         
-        supplementsSection += '--- Fim dos Suplementos ---';
+        supplementsSection += '--- Fim dos Suplementos ---\n';
         
         // Add supplements section to the end
         currentText = currentText.trim() + supplementsSection;
@@ -266,27 +280,24 @@ function updateFormulas() {
         
         hemogramCheckboxes.forEach(function(checkbox) {
             const hemogramName = checkbox.getAttribute('data-name');
-            const hemogramUnit = checkbox.getAttribute('data-unit');
-            const hemogramReference = checkbox.getAttribute('data-reference');
+            const parameterType = checkbox.getAttribute('data-type');
+            const unit = checkbox.getAttribute('data-unit');
+            const referenceValues = checkbox.getAttribute('data-reference');
             
-            hemogramSection += `• ${hemogramName}`;
-            if (hemogramUnit) {
-                hemogramSection += ` (${hemogramUnit})`;
+            hemogramSection += `${hemogramName} (${parameterType}) - ${unit}\n`;
+            if (referenceValues) {
+                hemogramSection += `Valores de referência: ${referenceValues}\n`;
             }
-            if (hemogramReference) {
-                hemogramSection += ` - Ref: ${hemogramReference}`;
-            }
-            hemogramSection += '\n';
         });
         
-        hemogramSection += '--- Fim dos Parâmetros ---';
+        hemogramSection += '--- Fim dos Parâmetros ---\n';
         
         // Add hemogram section to the end
         currentText = currentText.trim() + hemogramSection;
     }
     
     // Update textarea
-    customFormulasTextarea.value = currentText;
+    customFormulasTextarea.value = currentText.trim();
 }
 
 // Initialize on page load
